@@ -1,5 +1,8 @@
 # มาตรฐานการเขียนโค้ดโปรเจค Next.js
 
+npm install
+npm run dev
+
 ## กฎการตั้งชื่อไฟล์และโฟลเดอร์
 
 ### ไฟล์
@@ -92,7 +95,8 @@ dev-[ชื่อตามหมายเลขใน SRS]-สื่งที่
 [NFR-2] refactor: optimize image processing
 ปรับปรุง logic การประมวลผลรูปภาพ
 ```
-
+commit ใน branch ก่อน และค่อย pull request
+'''
 ## โครงสร้างโปรเจค
 
 ```
