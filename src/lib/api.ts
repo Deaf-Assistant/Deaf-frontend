@@ -311,15 +311,23 @@ import { createClient } from './supabase';
 
 const supabase = createClient();
 
-// --- Auth API ---
+// --- Auth API (แก้ไขให้ตรงกับ Frontend) ---
 export const authApi = {
   async login(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    return data;
+    
+    // แปลงค่า return ให้ตรงกับที่ Frontend เรียกใช้ (response.token)
+    return {
+      user: data.user,
+      token: data.session?.access_token
+    };
   },
 
-  async register(email: string, password: string, name: string, role: string = 'STUDENT') {
+  // รับค่าเป็น Object ตามที่ RegisterPage ส่งมา
+  async register(data: { email: string; password: string; name: string; role: string }) {
+    const { email, password, name, role } = data;
+    
     // 1. สมัครสมาชิก
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -338,7 +346,12 @@ export const authApi = {
         });
         if (profileError) console.error('Error creating profile:', profileError);
     }
-    return authData;
+
+    // แปลงค่า return
+    return {
+        user: authData.user,
+        token: authData.session?.access_token
+    };
   },
 
   async logout() {
