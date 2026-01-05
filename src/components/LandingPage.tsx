@@ -23,7 +23,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href={ROUTES.COURSES}>
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+                <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600">
                   <span className="flex items-center text-lg">
                     เริ่มใช้งาน
                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,7 +92,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section
       <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto text-center">
@@ -110,18 +110,18 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
       <section className="py-20 bg-blue-600 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-6">พร้อมเริ่มต้นแล้วหรือยัง?</h2>
+          <h2 className="text-4xl font-bold mb-6 ">พร้อมเริ่มต้นแล้วหรือยัง?</h2>
           <p className="text-xl mb-8 text-blue-100">
             เข้าถึงคำศัพท์และวิดีโอภาษามือได้ทันที
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href={ROUTES.REGISTER}>
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+              <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600">
                 <span className="text-lg">ลงทะเบียนฟรี</span>
               </Button>
             </Link>
