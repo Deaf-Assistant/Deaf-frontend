@@ -439,12 +439,18 @@ export const vocabularyApi = {
     return data;
   },
 
-  async getById(id: string) {
+async getById(id: string) {
     const { data, error } = await supabase
       .from('vocabularies')
-      .select('*, courses(*), chapters(*)')
+      .select(`
+        *,
+        courses (name),
+        chapters (name),
+        users:created_by (name)
+      `)
       .eq('id', id)
       .single();
+    
     if (error) throw error;
     return data;
   },

@@ -31,15 +31,12 @@ export default function VocabularyDetailPage() {
       setVocabulary(data);
     } catch (error) {
       console.error('Failed to load vocabulary:', error);
-      alert('ไม่สามารถโหลดข้อมูลคำศัพท์ได้');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
 
   if (!vocabulary) {
     return (
@@ -48,7 +45,6 @@ export default function VocabularyDetailPage() {
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">ไม่พบคำศัพท์</h2>
-            <p className="text-lg text-gray-600 mb-6">คำศัพท์ที่คุณค้นหาไม่มีอยู่ในระบบ</p>
             <Button onClick={() => router.back()}>กลับ</Button>
           </div>
         </main>
@@ -57,134 +53,85 @@ export default function VocabularyDetailPage() {
     );
   }
 
+  // แมปตัวแปรจาก Database (snake_case) มาเป็นชื่อเรียกง่ายๆ
+  const termThai = vocabulary.term_thai;
+  const termEnglish = vocabulary.term_english;
+  const definition = vocabulary.definition;
+  const videoUrl = vocabulary.video_url;
+  const imageUrl = vocabulary.image_url;
+  const courseName = vocabulary.courses?.name;
+  const chapterName = vocabulary.chapters?.name;
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
       <main className="flex-1 bg-gray-50 py-8">
         <div className="container mx-auto px-4">
-          {/* Breadcrumb */}
-          <nav className="mb-6 text-base">
-            <ol className="flex items-center space-x-2 text-gray-600">
-              <li>
-                <Link href={ROUTES.VOCABULARY} className="hover:text-blue-600">
-                  คำศัพท์
-                </Link>
-              </li>
+          <nav className="mb-6 text-base text-gray-600">
+            <ol className="flex items-center space-x-2">
+              <li><Link href={ROUTES.VOCABULARY} className="hover:text-blue-600">คำศัพท์</Link></li>
               <li>/</li>
-              {vocabulary.courseName && (
+              {courseName && (
                 <>
-                  <li>
-                    <Link href={`/courses/${vocabulary.courseId}`} className="hover:text-blue-600">
-                      {vocabulary.courseName}
-                    </Link>
-                  </li>
+                  <li><Link href={`/courses/${vocabulary.course_id}`} className="hover:text-blue-600">{courseName}</Link></li>
                   <li>/</li>
                 </>
               )}
-              <li className="text-gray-900 font-medium">{vocabulary.termThai}</li>
+              <li className="text-gray-900 font-medium">{termThai}</li>
             </ol>
           </nav>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Left Column - Media */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Video Player */}
-              {vocabulary.videoUrl && (
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                  <VideoPlayer
-                    videoUrl={vocabulary.videoUrl}
-                    title={vocabulary.termThai}
-                    autoLoop={true}
-                  />
+            {/* สื่อประกอบ */}
+            <div className="lg:col-span-2 space-y-8">
+              {videoUrl && (
+                <div className="bg-black rounded-2xl shadow-lg overflow-hidden">
+                  <VideoPlayer videoUrl={videoUrl} title={termThai} autoLoop={true} />
                 </div>
               )}
-
-              {/* Image */}
-              {vocabulary.imageUrl && (
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">รูปภาพประกอบ</h3>
-                  <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-                    <Image
-                      src={vocabulary.imageUrl}
-                      alt={vocabulary.termThai}
-                      fill
-                      className="object-contain"
-                    />
+              {imageUrl && (
+                <div className="bg-white rounded-2xl shadow-lg p-6 border">
+                  <h3 className="text-xl font-bold mb-4">รูปภาพประกอบ</h3>
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+                    <Image src={imageUrl} alt={termThai} fill className="object-contain" />
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Right Column - Details */}
+            {/* รายละเอียด */}
             <div className="space-y-6">
-              {/* Term Card */}
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <div className="mb-4">
-                  <h1 className="text-4xl font-bold text-gray-900 mb-3">
-                    {vocabulary.termThai}
-                  </h1>
-                  {vocabulary.termEnglish && (
-                    <p className="text-2xl text-gray-600">{vocabulary.termEnglish}</p>
+              <div className="bg-white rounded-2xl shadow-lg p-6 border">
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">{termThai}</h1>
+                {termEnglish && <p className="text-2xl text-gray-500">{termEnglish}</p>}
+                <div className="border-t mt-4 pt-4">
+                  <h3 className="text-lg font-semibold mb-2">คำอธิบาย</h3>
+                  <p className="text-base text-gray-700 leading-relaxed">{definition}</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-lg p-6 border">
+                <h3 className="text-lg font-semibold mb-4 border-b pb-2">ข้อมูลรายวิชา</h3>
+                <div className="space-y-4">
+                  {courseName && (
+                    <div>
+                      <div className="text-sm text-gray-500">รายวิชา</div>
+                      <Link href={`/courses/${vocabulary.course_id}`} className="text-base font-medium text-blue-600">{courseName}</Link>
+                    </div>
+                  )}
+                  {chapterName && (
+                    <div>
+                      <div className="text-sm text-gray-500">บทเรียน</div>
+                      <div className="text-base font-medium">{chapterName}</div>
+                    </div>
                   )}
                 </div>
-
-                <div className="border-t border-gray-200 pt-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">คำอธิบาย</h3>
-                  <p className="text-base text-gray-700 leading-relaxed">
-                    {vocabulary.definition}
-                  </p>
-                </div>
               </div>
 
-              {/* Course Info */}
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">ข้อมูลรายวิชา</h3>
-                
-                {vocabulary.courseName && (
-                  <div className="mb-4">
-                    <div className="text-sm text-gray-600 mb-1">รายวิชา</div>
-                    <Link
-                      href={`/courses/${vocabulary.courseId}`}
-                      className="text-base font-medium text-blue-600 hover:text-blue-700"
-                    >
-                      {vocabulary.courseName}
-                    </Link>
-                  </div>
-                )}
-
-                {vocabulary.chapterName && (
-                  <div className="mb-4">
-                    <div className="text-sm text-gray-600 mb-1">บทเรียน</div>
-                    <div className="text-base font-medium text-gray-900">
-                      {vocabulary.chapterName}
-                    </div>
-                  </div>
-                )}
-
-                {vocabulary.updatedAt && (
-                  <div className="mb-4">
-                    <div className="text-sm text-gray-600 mb-1">อัปเดตล่าสุด</div>
-                    <div className="text-base text-gray-900">
-                      {new Date(vocabulary.updatedAt).toLocaleDateString('th-TH', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {vocabulary.updatedBy && (
-                  <div>
-                    <div className="text-sm text-gray-600 mb-1">แก้ไขโดย</div>
-                    <div className="text-base text-gray-900">{vocabulary.updatedBy}</div>
-                  </div>
-                )}
-              </div>
-
-              {/* Report Button */}
-              <Link href={`${ROUTES.REPORT}?vocabularyId=${vocabulary.id}`}>
+              {/* เว้นระยะห่างด้านบนปุ่ม */}
+              <div className="mt-10 space-y-4"> 
+                <Link href={`${ROUTES.REPORT}?vocabularyId=${vocabulary.id}&term=${encodeURIComponent(termThai)}`}>
                 <Button fullWidth variant="secondary" size="lg">
                   <span className="flex items-center justify-center">
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -193,10 +140,9 @@ export default function VocabularyDetailPage() {
                     รายงานปัญหา
                   </span>
                 </Button>
-              </Link>
-
-              {/* Back Button */}
-              <Button
+                </Link>
+        <div className="mt-5 space-y-4">          
+            <Button
                 fullWidth
                 variant="secondary"
                 size="lg"
@@ -204,11 +150,13 @@ export default function VocabularyDetailPage() {
               >
                 ← กลับ
               </Button>
+          </div>    
+    
+              </div>
             </div>
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );
