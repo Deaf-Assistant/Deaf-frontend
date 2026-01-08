@@ -1,8 +1,12 @@
+// src/types/index.ts
+
+export type UserRole = 'STUDENT' | 'ADMIN' | 'INTERPRETER' | 'LECTURER';
+
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role: 'STUDENT' | 'ADMIN' | 'INTERPRETER' | 'LECTURER';
+  name: string; // ใน DB มี column name ใช่ไหม? หรือต้องดึงจาก metadata
+  role: UserRole;
 }
 
 export interface Course {
@@ -10,49 +14,34 @@ export interface Course {
   name: string;
   code: string;
   description?: string;
-  imageUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Chapter {
-  id: string;
-  name: string;
-  courseId: string;
-  order: number;
+  image_url?: string; // แก้เป็น snake_case ตาม DB
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Vocabulary {
   id: string;
-  termThai: string;
-  termEnglish: string;
-  definition: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  courseId: string;
-  courseName?: string;
-  chapterId: string;
-  chapterName?: string;
-  createdBy?: string;
-  updatedBy?: string;
-  createdAt: string;
-  updatedAt: string;
+  term_thai: string;    // แก้เป็น snake_case
+  term_english?: string; // แก้เป็น snake_case
+  definition?: string;
+  image_url?: string;   // แก้เป็น snake_case
+  video_url?: string;   // แก้เป็น snake_case
+  course_id?: string;   // แก้เป็น snake_case
+  chapter_id?: string;  // แก้เป็น snake_case
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+  // field ที่ join มา (optional)
+  courses?: Course;
+  chapters?: any;
 }
 
 export interface Report {
   id: string;
-  vocabularyId: string;
-  vocabularyTerm?: string;
-  problemType: string;
+  vocabulary_id: string; // แก้เป็น snake_case
+  problem_type: string;  // แก้เป็น snake_case
   description: string;
   status: 'PENDING' | 'RESOLVED' | 'REJECTED';
-  reportedBy: string;
-  reportedAt: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
+  reported_by?: string;  // แก้เป็น snake_case
+  created_at: string;    // ใน DB คือ created_at (ไม่มี reported_at ใน schema ล่าสุด หรือใช้ created_at แทน)
 }
