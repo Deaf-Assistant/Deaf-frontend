@@ -1,61 +1,52 @@
-'use client'
+// components/ui/VideoPlayer.tsx
+import { FC } from 'react';
+import Image from 'next/image';
 
-import { ReactNode, useEffect } from 'react';
-
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface VideoPlayerProps {
+  videoUrl: string;
   title?: string;
-  children: ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  autoLoop?: boolean;
 }
 
-export default function Modal({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children,
-  size = 'md' 
-}: ModalProps) {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+const VideoPlayer: FC<VideoPlayerProps> = ({ videoUrl, title, autoLoop = false }) => {
+  // Check if the URL is a GIF
+  const isGif = videoUrl.toLowerCase().endsWith('.gif');
 
-  if (!isOpen) return null;
-
-  const sizes = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-  };
+  if (isGif) {
+    return (
+      <div className="relative w-full h-full">
+        <Image
+          src={videoUrl}
+          alt={title || 'GIF'}
+          className="w-full h-full object-contain"
+          width={0}
+          height={0}
+          sizes="100vw"
+          style={{ width: '100%', height: 'auto' }}
+          unoptimized
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
-        <div
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-          onClick={onClose}
-        ></div>
-
-        {/* Modal panel */}
-        <div className={`inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle w-full ${sizes[size]}`}>
-          {title && (
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-            </div>
-          )}
-          <div className="px-6 py-4">{children}</div>
-        </div>
-      </div>
+    <div className="relative w-full h-full">
+      <video
+        className="w-full h-full object-contain"
+        src={videoUrl}
+        title={title}
+        autoPlay={autoLoop}
+        loop={autoLoop}
+        muted={true}
+        playsInline={true}
+        controls={!autoLoop}
+        preload="metadata"
+      >
+        <source src={videoUrl} />
+        Your browser does not support the video tag.
+      </video>
     </div>
   );
-}
+};
+
+export default VideoPlayer;
