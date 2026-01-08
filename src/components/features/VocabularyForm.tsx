@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FileUpload from '@/components/features/FileUpload';
-import { coursesApi, vocabularyApi, uploadApi } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
 import { FILE_LIMITS } from '@/lib/constants';
-import { Vocabulary } from '@/types';
+import { Vocabulary, Course, Chapter } from '@/types';
 
 interface VocabularyFormProps {
   vocabulary?: Vocabulary;
@@ -17,9 +17,10 @@ interface VocabularyFormProps {
 
 export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: VocabularyFormProps) {
   const router = useRouter();
+  const supabase = createClient();
   const [loading, setLoading] = useState(false);
-  const [courses, setCourses] = useState<any[]>([]);
-  const [chapters, setChapters] = useState<any[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
 
   const [formData, setFormData] = useState({
     courseId: vocabulary?.course_id || '',
@@ -34,12 +35,17 @@ export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: V
   const [imagePreview, setImagePreview] = useState(vocabulary?.image_url || '');
   const [videoPreview, setVideoPreview] = useState(vocabulary?.video_url || '');
 
-  // Load courses
+  // Load courses from Supabase
   useEffect(() => {
     const loadCourses = async () => {
       try {
-        const data = await coursesApi.getAll();
-        setCourses(data);
+        const { data, error } = await supabase
+          .from('courses')
+          .select('*')
+          .order('name');
+        
+        if (error) throw error;
+        setCourses(data || []);
       } catch (error) {
         console.error('Failed to load courses:', error);
       }
@@ -52,8 +58,14 @@ export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: V
     const loadChapters = async () => {
       if (formData.courseId) {
         try {
-          const course = await coursesApi.getById(formData.courseId);
-          setChapters(course.chapters || []);
+          const { data, error } = await supabase
+            .from('chapters')
+            .select('*')
+            .eq('course_id', formData.courseId)
+            .order('order');
+          
+          if (error) throw error;
+          setChapters(data || []);
         } catch (error) {
           console.error('Failed to load chapters:', error);
         }
@@ -65,10 +77,40 @@ export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: V
   }, [formData.courseId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+      // Reset chapter when course changes
+      ...(name === 'courseId' ? { chapterId: '' } : {}),
+    }));
+  };
+
+  // Upload file to Supabase Storage
+  const uploadFile = async (file: File, type: 'image' | 'video'): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${type}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('media')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('media')
+        .getPublicUrl(data.path);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error(`Failed to upload ${type}:`, error);
+      return null;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,28 +118,44 @@ export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: V
     setLoading(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
       // Upload files if new ones selected
       let imageUrl = imagePreview;
       let videoUrl = videoPreview;
 
       if (imageFile) {
-        const uploadResult = await uploadApi.uploadFile(imageFile, 'image');
-        imageUrl = uploadResult.url;
+        const url = await uploadFile(imageFile, 'image');
+        if (url) imageUrl = url;
       }
 
       if (videoFile) {
-        const uploadResult = await uploadApi.uploadFile(videoFile, 'video');
-        videoUrl = uploadResult.url;
+        const url = await uploadFile(videoFile, 'video');
+        if (url) videoUrl = url;
       }
 
-      const data = {
-        ...formData,
-        imageUrl,
-        videoUrl,
+      const vocabularyData = {
+        course_id: formData.courseId,
+        chapter_id: formData.chapterId,
+        term_thai: formData.termThai,
+        term_english: formData.termEnglish || null,
+        definition: formData.definition,
+        image_url: imageUrl || null,
+        video_url: videoUrl || null,
+        updated_by: user?.id || null,
       };
 
       if (mode === 'add') {
-        await vocabularyApi.create(data);
+        const { error } = await supabase
+          .from('vocabularies')
+          .insert({
+            ...vocabularyData,
+            created_by: user?.id || null,
+          });
+
+        if (error) throw error;
+
         if (onSubmit) {
           onSubmit();
         } else {
@@ -106,7 +164,13 @@ export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: V
           router.refresh();
         }
       } else {
-        await vocabularyApi.update(vocabulary!.id, data);
+        const { error } = await supabase
+          .from('vocabularies')
+          .update(vocabularyData)
+          .eq('id', vocabulary!.id);
+
+        if (error) throw error;
+
         if (onSubmit) {
           onSubmit();
         } else {
@@ -116,6 +180,7 @@ export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: V
         }
       }
     } catch (error: any) {
+      console.error('Submit error:', error);
       alert(error.message || 'เกิดข้อผิดพลาด');
     } finally {
       setLoading(false);
@@ -139,7 +204,7 @@ export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: V
           <option value="">-- เลือกรายวิชา --</option>
           {courses.map((course) => (
             <option key={course.id} value={course.id}>
-              {course.code} - {course.name}
+              {course.code ? `${course.code} - ` : ''}{course.name}
             </option>
           ))}
         </select>
