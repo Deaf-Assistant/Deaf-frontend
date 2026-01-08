@@ -10,7 +10,7 @@ export default function HomePage() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      router.replace("/login");
+      router.replace("/");
     }
   }, [router]);
 

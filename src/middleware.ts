@@ -7,6 +7,14 @@ export async function middleware(request: NextRequest) {
     request: { headers: request.headers },
   })
 
+  const pathname = request.nextUrl.pathname
+
+  // ONLY check auth for /admin routes - everything else passes through
+  if (!pathname.startsWith('/admin')) {
+    return response // Guest can access everything else
+  }
+
+  // From here, only /admin routes are checked
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -25,38 +33,30 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  
-  // 1. ตรวจสอบว่ามี User ที่ Login อยู่จริงไหม (จาก Auth)
   const { data: { user } } = await supabase.auth.getUser()
 
-  // 2. ถ้าพยายามเข้าหน้า Admin
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    // ถ้าไม่ Login ให้ส่งไปหน้า Login
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+  // Not logged in → redirect to login (only for /admin)
+  if (!user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
 
-    // 3. ดึงข้อมูล Role จากตาราง users ใน Database โดยตรง
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+  // Check role
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
 
-    const adminRoles = ['ADMIN', 'INTERPRETER', 'LECTURER']
+  const adminRoles = ['ADMIN', 'INTERPRETER', 'LECTURER']
 
-    // 4. เช็คสิทธิ์: ถ้าไม่มีโปรไฟล์ หรือ Role ไม่ได้อยู่ในกลุ่มที่อนุญาต
-    if (!profile || !adminRoles.includes(profile.role)) {
-      // ส่งกลับหน้าแรก (Unauthorized)
-      return NextResponse.redirect(new URL('/', request.url))
-    }
- 
+  if (!profile || !adminRoles.includes(profile.role)) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return response
 }
 
 export const config = {
-  // ระบุ Path ที่ต้องการให้ Middleware ตรวจสอบ
-  matcher: ['/admin/:path*', '/vocabulary/:path*'], 
+  // IMPORTANT: Only match /admin routes
+  matcher: ['/admin/:path*'],
 }

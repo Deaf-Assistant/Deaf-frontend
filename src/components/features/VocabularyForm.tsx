@@ -22,17 +22,17 @@ export default function VocabularyForm({ vocabulary, mode = 'add', onSubmit }: V
   const [chapters, setChapters] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
-    courseId: vocabulary?.courseId || '',
-    chapterId: vocabulary?.chapterId || '',
-    termThai: vocabulary?.termThai || '',
-    termEnglish: vocabulary?.termEnglish || '',
+    courseId: vocabulary?.course_id || '',
+    chapterId: vocabulary?.chapter_id || '',
+    termThai: vocabulary?.term_thai || '',
+    termEnglish: vocabulary?.term_english || '',
     definition: vocabulary?.definition || '',
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState(vocabulary?.imageUrl || '');
-  const [videoPreview, setVideoPreview] = useState(vocabulary?.videoUrl || '');
+  const [imagePreview, setImagePreview] = useState(vocabulary?.image_url || '');
+  const [videoPreview, setVideoPreview] = useState(vocabulary?.video_url || '');
 
   // Load courses
   useEffect(() => {
