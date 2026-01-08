@@ -317,9 +317,22 @@ export const authApi = {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     
-    // แปลงค่า return ให้ตรงกับที่ Frontend เรียกใช้ (response.token)
+    // --- เพิ่มส่วนนี้: ดึงข้อมูล Role จากตาราง users ---
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', data.user.id)
+      .single();
+      
+    // ผนวกข้อมูล Auth user เข้ากับ Profile (เพื่อให้ได้ role ที่ถูกต้องจาก DB)
+    const fullUser = {
+      ...data.user,
+      ...profile
+    };
+    // ---------------------------------------------
+
     return {
-      user: data.user,
+      user: fullUser, // ส่งกลับเป็น fullUser แทน data.user
       token: data.session?.access_token
     };
   },
@@ -384,13 +397,24 @@ export const coursesApi = {
     return data;
   },
 
-  async getById(id: string) {
+async getById(id: string) {
     const { data, error } = await supabase
       .from('courses')
-      .select('*')
+      // แก้ไขตรงนี้: เพิ่ม chapters(*) เพื่อดึงข้อมูลบทเรียนมาด้วย
+      .select(`
+        *,
+        chapters (*)
+      `)
       .eq('id', id)
       .single();
+
     if (error) throw error;
+
+    // (เสริม) เรียงลำดับบทเรียนตามชื่อ (ถ้าต้องการ)
+    if (data.chapters) {
+      data.chapters.sort((a: any, b: any) => a.name.localeCompare(b.name));
+    }
+
     return data;
   },
 
@@ -527,4 +551,57 @@ export const reportsApi = {
         if (error) throw error;
         return data;
     }
-}
+
+};
+
+// --- Users API (เพิ่มใหม่สำหรับ Admin) ---
+export const usersApi = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email, role, created_at')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  }
+};
+
+// --- Dashboard Helper (Optional: ช่วยรวมข้อมูลให้ง่ายขึ้น) ---
+export const dashboardApi = {
+  async getStats() {
+    const [courses, vocabs, reports, users] = await Promise.all([
+      supabase.from('courses').select('id', { count: 'exact', head: true }),
+      supabase.from('vocabularies').select('id', { count: 'exact', head: true }),
+      supabase.from('reports').select('id, status, created_at'), // ดึง status มานับด้วย
+      supabase.from('users').select('id', { count: 'exact', head: true })
+    ]);
+
+    return {
+      coursesCount: courses.count || 0,
+      vocabCount: vocabs.count || 0,
+      usersCount: users.count || 0,
+      totalReports: reports.data?.length || 0,
+      pendingReports: reports.data?.filter(r => r.status === 'PENDING').length || 0,
+      resolvedReports: reports.data?.filter(r => r.status === 'RESOLVED').length || 0,
+      rejectedReports: reports.data?.filter(r => r.status === 'REJECTED').length || 0,
+      recentReports: reports.data?.slice(0, 5) || [] // เอาแค่ 5 อันล่าสุด (ถ้าเรียงจาก DB แล้ว)
+    };
+  }
+};
+
+// --- Chapters API (เพิ่มใหม่) ---
+export const chaptersApi = {
+  async getAll(courseId?: string) {
+    let query = supabase.from('chapters').select('*').order('name');
+    
+    // กรองตามวิชาที่เลือก
+    if (courseId) {
+      query = query.eq('course_id', courseId);
+    }
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+};
+

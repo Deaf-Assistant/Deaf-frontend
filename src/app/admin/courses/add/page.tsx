@@ -5,21 +5,33 @@ import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
+import { coursesApi } from "@/lib/api"; // Import API
 
 export default function AddCoursePage() {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false); // เพิ่ม loading state
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (!code || !name) {
       alert("กรุณากรอกข้อมูลให้ครบ");
       return;
     }
 
-    // mock success
-    alert("เพิ่มรายวิชาสำเร็จ (mock)");
-    router.push("/admin/courses");
+    setLoading(true);
+    try {
+      // เรียก API จริง
+      await coursesApi.create({ code, name });
+      
+      alert("เพิ่มรายวิชาสำเร็จ");
+      router.push("/admin/courses");
+    } catch (error: any) {
+      console.error(error);
+      alert("เกิดข้อผิดพลาด: " + (error.message || "ไม่สามารถบันทึกได้"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,10 +51,12 @@ export default function AddCoursePage() {
         />
 
         <div className="flex justify-end gap-2">
-          <Button variant="secondary" onClick={() => router.back()}>
+          <Button variant="secondary" onClick={() => router.back()} disabled={loading}>
             ยกเลิก
           </Button>
-          <Button onClick={onSubmit}>บันทึก</Button>
+          <Button onClick={onSubmit} loading={loading} disabled={loading}>
+            บันทึก
+          </Button>
         </div>
       </div>
     </Card>
