@@ -15,7 +15,6 @@ export const auth = {
     return null;
   },
 
-  // แก้ไขส่วนนี้ให้ดึงข้อมูล Object ออกมาให้ชัวร์
   getUser(): User | null {
     if (typeof window !== "undefined") {
       const userStr = localStorage.getItem("user");
@@ -23,9 +22,8 @@ export const auth = {
       
       try {
         const userData = JSON.parse(userStr);
-        // ป้องกันกรณีข้อมูลที่เก็บไม่ใช่ Object (เช่น เก็บแค่คำว่า "authenticated")
         if (typeof userData !== 'object') return null;
-        return userData;
+        return userData as User;
       } catch (e) {
         console.error("Error parsing user data:", e);
         return null;
@@ -34,10 +32,9 @@ export const auth = {
     return null;
   },
 
-setUser(user: User) {
+  setUser(user: User) {
     if (typeof window !== "undefined") {
       localStorage.setItem("user", JSON.stringify(user));
-      // เพิ่มบรรทัดนี้ เพื่อบอก Header ว่าข้อมูล User มาแล้วนะ!
       window.dispatchEvent(new Event('auth-change'));
     }
   },
@@ -48,9 +45,12 @@ setUser(user: User) {
 
   isAdmin(): boolean {
     const user = this.getUser();
-    const userRole = user?.user_metadata?.role || user?.role;
     if (!user) return false;
-    // ตรวจสอบ Role ตามที่นายกำหนดไว้
+
+    // --- แก้ไขจุดที่ Error ---
+    // ใช้ user.role โดยตรง (ลบ user_metadata ออก)
+    const userRole = user.role;
+    
     return (
       userRole === "ADMIN" ||
       userRole === "INTERPRETER" ||
@@ -62,7 +62,6 @@ setUser(user: User) {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      // บังคับยิง Event เพื่อให้ Header รู้ตัวและอัปเดตทันที
       window.dispatchEvent(new Event('auth-change'));
     }
   },

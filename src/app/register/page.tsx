@@ -59,7 +59,7 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -72,17 +72,28 @@ export default function RegisterPage() {
       const { confirmPassword, ...registerData } = formData;
       const response = await authApi.register(registerData);
 
-      auth.setToken(response.token);
-      auth.setUser(response.user);
+      // --- ส่วนที่แก้ไข ---
+      // ตรวจสอบว่ามี token และ user ส่งกลับมาหรือไม่ ก่อนที่จะบันทึก
+      if (response.token && response.user) {
+        auth.setToken(response.token);
+        // ใช้ as any เพื่อเลี่ยงปัญหา Type Mismatch ระหว่าง Supabase User กับ App User ชั่วคราว
+        auth.setUser(response.user as any);
 
-      alert('ลงทะเบียนสำเร็จ!');
-      
-      if (auth.isAdmin()) {
-        router.push(ROUTES.ADMIN_DASHBOARD);
+        alert('ลงทะเบียนสำเร็จ!');
+        
+        if (auth.isAdmin()) {
+          router.push(ROUTES.ADMIN_DASHBOARD);
+        } else {
+          router.push(ROUTES.COURSES);
+        }
+        router.refresh();
       } else {
-        router.push(ROUTES.COURSES);
+        // กรณีที่ลงทะเบียนสำเร็จแต่ไม่ได้ Token ทันที (เช่น ระบบต้องรอ Verify Email)
+        alert('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
+        router.push(ROUTES.LOGIN);
       }
-      router.refresh();
+      // -----------------
+
     } catch (err: any) {
       setErrors({ form: err.message || 'ลงทะเบียนไม่สำเร็จ' });
     } finally {
