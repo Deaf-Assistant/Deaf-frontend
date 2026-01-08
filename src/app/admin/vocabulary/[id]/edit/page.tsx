@@ -10,13 +10,12 @@ import { vocabularyApi } from "@/lib/api";
 export default function EditVocabularyPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [vocabulary, setVocabulary] = useState<any | null>(null);
+  const [vocabulary, setVocabulary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
-    loadData();
+    if (id) loadData();
   }, [id]);
 
   const loadData = async () => {
@@ -25,20 +24,35 @@ export default function EditVocabularyPage() {
       const data = await vocabularyApi.getById(id as string);
       setVocabulary(data);
     } catch (err) {
-      console.error(err);
-      alert('ไม่พบคำศัพท์หรือเกิดข้อผิดพลาด');
+      alert('ไม่พบข้อมูล');
       router.push('/admin/vocabulary');
     } finally {
       setLoading(false);
     }
   };
 
-  const onSubmit = async (data: any) => {
+  // ✅ ฟังก์ชันนี้ต้องรับ formData แล้วแปลงเป็น Snake Case (เหมือนหน้า Add)
+  const onSubmit = async (formData: any) => {
     setSaving(true);
     try {
-      await vocabularyApi.update(id as string, data);
-      alert(`แก้ไขข้อมูลสำเร็จ`);
+      const payload = {
+        term_thai: formData.termThai,
+        term_english: formData.termEnglish,
+        definition: formData.definition,
+        course_id: formData.courseId,
+        
+        // 🔥 จุดสำคัญ: แปลง chapterId -> chapter_id
+        chapter_id: formData.chapterId, 
+        
+        image_url: formData.imageUrl,
+        video_url: formData.videoUrl
+      };
+
+      await vocabularyApi.update(id as string, payload);
+      alert("แก้ไขข้อมูลสำเร็จ");
       router.push("/admin/vocabulary");
+      router.refresh();
+      
     } catch (error: any) {
       console.error(error);
       alert("เกิดข้อผิดพลาด: " + error.message);
@@ -47,15 +61,7 @@ export default function EditVocabularyPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <Card className="max-w-2xl">
-        <div className="flex justify-center py-8">
-          <Loading />
-        </div>
-      </Card>
-    );
-  }
+  if (loading) return <Loading />;
 
   return (
     <Card className="max-w-2xl">

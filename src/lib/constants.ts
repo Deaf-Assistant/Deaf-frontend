@@ -15,12 +15,13 @@ export const VIDEO_SPEEDS = [0.5, 0.75, 1.0];
 export const FILE_LIMITS = {
   IMAGE: {
     MAX_SIZE: 5 * 1024 * 1024, // 5MB
-    ACCEPTED: ['image/png', 'image/jpeg', 'image/jpg'],
+    // ✅ เพิ่ม '.gif' และ 'image/gif' เข้าไปครับ
+    ACCEPTED: ['.jpg', '.jpeg', '.png', '.webp', '.gif', 'image/jpeg', 'image/png', 'image/webp', 'image/gif']
   },
   VIDEO: {
-    MAX_SIZE: 10 * 1024 * 1024, // 10MB
-    ACCEPTED: ['video/mp4', 'image/gif'],
-  },
+    MAX_SIZE: 100 * 1024 * 1024, // 100MB
+    ACCEPTED: ['.mp4', '.mov', '.webm', 'video/mp4', 'video/quicktime', 'video/webm', 'image/gif']
+  }
 };
 
 export const PROBLEM_TYPES = [
@@ -30,3 +31,4 @@ export const PROBLEM_TYPES = [
   'ภาษามือผิด',
   'อื่นๆ',
 ];
+

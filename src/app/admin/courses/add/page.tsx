@@ -5,24 +5,27 @@ import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { coursesApi } from "@/lib/api"; // Import API
+import { coursesApi } from "@/lib/api";
 
 export default function AddCoursePage() {
   const router = useRouter();
-  const [code, setCode] = useState("");
-  const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false); // เพิ่ม loading state
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    code: "",
+    name: "",
+    description: ""
+  });
 
   const onSubmit = async () => {
-    if (!code || !name) {
+    if (!formData.code || !formData.name) {
       alert("กรุณากรอกข้อมูลให้ครบ");
       return;
     }
 
     setLoading(true);
     try {
-      // เรียก API จริง
-      await coursesApi.create({ code, name });
+      await coursesApi.create(formData);
       
       alert("เพิ่มรายวิชาสำเร็จ");
       router.push("/admin/courses");
@@ -40,17 +43,30 @@ export default function AddCoursePage() {
 
       <div className="space-y-4">
         <Input
-          label="รหัสรายวิชา"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
+          label="รหัสรายวิชา *"
+          value={formData.code}
+          onChange={(e) => setFormData({...formData, code: e.target.value})}
+          placeholder="เช่น CS101"
         />
         <Input
-          label="ชื่อรายวิชา"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          label="ชื่อรายวิชา *"
+          value={formData.name}
+          onChange={(e) => setFormData({...formData, name: e.target.value})}
+          placeholder="เช่น Computer Programming"
         />
+        
+        <div>
+           <label className="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
+           <textarea 
+             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+             rows={3}
+             value={formData.description}
+             onChange={(e) => setFormData({...formData, description: e.target.value})}
+             placeholder="รายละเอียดวิชาสังเขป..."
+           />
+        </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-4">
           <Button variant="secondary" onClick={() => router.back()} disabled={loading}>
             ยกเลิก
           </Button>

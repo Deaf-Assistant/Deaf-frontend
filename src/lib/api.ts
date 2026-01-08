@@ -464,20 +464,19 @@ export const vocabularyApi = {
   },
 
 async getById(id: string) {
-    const { data, error } = await supabase
-      .from('vocabularies')
-      .select(`
-        *,
-        courses (name),
-        chapters (name),
-        users:created_by (name)
-      `)
-      .eq('id', id)
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
+  const { data, error } = await supabase
+    .from('vocabularies')
+    .select(`
+      *,
+      courses (name),
+      chapters (name)
+    `)
+    .eq('id', id)
+    .single();
+  
+  if (error) throw error;
+  return data;
+},
 
   async search(keyword: string, courseId?: string) {
     let query = supabase
@@ -512,23 +511,23 @@ async getById(id: string) {
   }
 };
 
-// --- Upload API ---
-export const uploadApi = {
-  async uploadFile(file: File, bucket: 'images' | 'videos' = 'images') {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
+// // --- Upload API ---
+// export const uploadApi = {
+//   async uploadFile(file: File, bucket: 'images' | 'videos' = 'images') {
+//     const fileExt = file.name.split('.').pop();
+//     const fileName = `${Date.now()}.${fileExt}`;
+//     const filePath = `${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from(bucket)
-      .upload(filePath, file);
+//     const { error: uploadError } = await supabase.storage
+//       .from(bucket)
+//       .upload(filePath, file);
 
-    if (uploadError) throw uploadError;
+//     if (uploadError) throw uploadError;
 
-    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-    return { url: data.publicUrl };
-  }
-};
+//     const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+//     return { url: data.publicUrl };
+//   }
+// };
 
 // --- Reports API ---
 export const reportsApi = {
@@ -542,17 +541,23 @@ export const reportsApi = {
         if (error) throw error;
         return data;
     },
-     async updateStatus(id: string, status: string) {
-        const { data, error } = await supabase
-            .from('reports')
-            .update({ status })
-            .eq('id', id)
-            .select();
-        if (error) throw error;
-        return data;
-    }
+async updateStatus(id: string, status: string) {
+    const { data, error } = await supabase
+      .from('reports')       // ชื่อตารางต้องตรงเป๊ะ
+      .update({ status })    // สั่งอัปเดตคอลัมน์ status
+      .eq('id', id)          // เงื่อนไข: id ต้องตรงกับที่ส่งมา
+      .select();             // (Optional) ขอข้อมูลที่อัปเดตแล้วคืนมา
 
+    if (error) {
+        console.error("Update Status Error:", error);
+        throw error;
+    }
+    
+    return data;
+  }
 };
+
+
 
 // --- Users API (เพิ่มใหม่สำหรับ Admin) ---
 export const usersApi = {
@@ -602,6 +607,85 @@ export const chaptersApi = {
     const { data, error } = await query;
     if (error) throw error;
     return data;
-  }
+  },
+
+  update: async (id: string, data: any) => {
+    const { data: chapter, error } = await supabase
+      .from('chapters')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    return chapter;
+  },
+
+  delete: async (id: string) => {
+    const { error } = await supabase.from('chapters').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  },
+
+async create(data: { name: string; course_id: string }) {
+    // 1. หาค่า order สูงสุดที่มีอยู่ในคอร์สนี้ก่อน
+    const { data: maxRecord, error: fetchError } = await supabase
+      .from('chapters')
+      .select('order')                // ดึงเฉพาะ field order
+      .eq('course_id', data.course_id) // กรองเฉพาะวิชานี้
+      .order('order', { ascending: false }) // เรียงจากมากไปน้อย
+      .limit(1)                       // เอามาแค่ตัวแรก (ตัวที่ค่าเยอะสุด)
+      .maybeSingle(); // ใช้ maybeSingle เพราะถ้ายังไม่มีบทเรียนเลย มันจะ return null (ไม่ error)
+
+    if (fetchError) throw fetchError;
+
+    // 2. คำนวณ order ใหม่ 
+    // ถ้ามีข้อมูลเก่า (maxRecord.order) ให้เอามา +1
+    // ถ้าไม่มีข้อมูลเก่า (เป็น null) ให้เริ่มที่ 1
+    const nextOrder = (maxRecord?.order ?? 0) + 1;
+
+    // 3. บันทึกข้อมูลใหม่พร้อม order ที่คำนวณได้
+    const { data: result, error } = await supabase
+      .from('chapters')
+      .insert({
+        ...data,
+        order: nextOrder // ✅ ส่งค่า order ไปด้วยแล้ว!
+      })
+      .select()
+      .single();
+      
+    if (error) throw error;
+    return result;
+  },
+
 };
 
+// --- Upload API ---
+// --- Upload API (ใช้เวอร์ชันนี้อันเดียวครับ) ---
+export const uploadApi = {
+  async uploadFile(file: File, type: 'image' | 'video') {
+    // 1. เลือก Bucket
+    const bucketName = type === 'image' ? 'images' : 'videos';
+
+    // 2. ตั้งชื่อไฟล์ใหม่ (กันซ้ำ)
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    // 3. อัปโหลด
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    // 4. ขอ URL
+    const { data } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filePath);
+
+    return { url: data.publicUrl };
+  }
+};

@@ -20,7 +20,8 @@ export default function AdminReportPage() {
       const data = await reportsApi.getAll();
       // เรียงจากใหม่ไปเก่า
       const sorted = data.sort((a: any, b: any) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        // new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      new Date(b.reported_at).getTime() - new Date(a.reported_at).getTime()
       );
       setReports(sorted);
     } catch (error) {
@@ -65,7 +66,8 @@ export default function AdminReportPage() {
                 reports.map((report) => (
                   <tr key={report.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500">
-                      {new Date(report.created_at).toLocaleDateString('th-TH')}
+                      {/* {new Date(report.created_at).toLocaleDateString('th-TH')} */}
+                      {new Date(report.reported_at).toLocaleDateString('th-TH')}
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900">
                       {report.vocabularies?.term_thai || '-'}
