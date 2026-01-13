@@ -1,15 +1,30 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Card from "@/components/ui/Card";
 import VocabularyForm from "@/components/features/VocabularyForm";
 import { vocabularyApi } from "@/lib/api";
 
 export default function AddVocabularyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [loading, setLoading] = useState(false);
   const [lastCourseChapter, setLastCourseChapter] = useState<any>(null);
   const [formKey, setFormKey] = useState(0);
+
+  // รับค่าจาก URL
+  useEffect(() => {
+    const courseId = searchParams.get('courseId');
+    const chapterId = searchParams.get('chapterId');
+    
+    if (courseId) {
+      setLastCourseChapter({
+        courseId: courseId,
+        chapterId: chapterId || null,
+      });
+    }
+  }, [searchParams]);
 
   const onSubmit = async (formData: any) => {
     setLoading(true);
@@ -22,6 +37,7 @@ export default function AddVocabularyPage() {
         chapter_id: formData.chapterId,
         image_url: formData.imageUrl || null,
         video_url: formData.videoUrl || null,
+        fingerspelling_video_url: formData.fingerspellingVideoUrl || null, // ⭐ เพิ่ม
       };
 
       await vocabularyApi.create(payload);
@@ -35,7 +51,7 @@ export default function AddVocabularyPage() {
       // Reset ฟอร์ม
       setFormKey(prev => prev + 1);
       
-      // ✨ Refresh เฉพาะข้อมูลใน cache โดยไม่ reload หน้า
+      // Refresh cache
       router.refresh();
       
       alert("เพิ่มคำศัพท์สำเร็จ");
