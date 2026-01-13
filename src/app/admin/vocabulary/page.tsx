@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -10,16 +10,17 @@ import { vocabularyApi, coursesApi, chaptersApi } from "@/lib/api";
 
 export default function AdminVocabularyPage() {
   const router = useRouter();
-  
+  const searchParams = useSearchParams(); // ใช้ useSearchParams เพื่อดึงค่าจาก URL
+
   // --- States ---
   const [loading, setLoading] = useState(true);
   const [vocabularies, setVocabularies] = useState<any[]>([]);
   const [filteredVocabs, setFilteredVocabs] = useState<any[]>([]);
-  
+
   // ตัวเลือกสำหรับ Filter
   const [courses, setCourses] = useState<any[]>([]);
   const [chapters, setChapters] = useState<any[]>([]);
-  
+
   // ค่าที่เลือกปัจจุบัน
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [selectedChapter, setSelectedChapter] = useState<string>("");
@@ -57,35 +58,56 @@ export default function AdminVocabularyPage() {
     initData();
   }, []);
 
-  // ✨ Auto-refresh ทุก 5 วินาที (ถ้าต้องการ - Optional)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadVocabularies();
-      router.refresh();
-    }, 5000); // 5 วินาที
+  // --- ตรวจสอบพารามิเตอร์ใน URL และโหลด chapters ---
+useEffect(() => {
+  const courseId = searchParams.get("courseId");
+  const chapterId = searchParams.get("chapterId");
 
-    return () => clearInterval(interval);
-  }, [router]);
-
-  // --- 2. โหลดบทเรียนเมื่อเลือกวิชา ---
-  useEffect(() => {
-    if (!selectedCourse) {
-      setChapters([]);
-      setSelectedChapter("");
-      return;
-    }
-
-    const loadChapters = async () => {
+  if (courseId && courseId !== selectedCourse) {
+    setSelectedCourse(courseId);
+    
+    // โหลด chapters และเซ็ต chapter ที่เลือก
+    const loadData = async () => {
       try {
-        const data = await chaptersApi.getAll(selectedCourse);
+        const data = await chaptersApi.getAll(courseId);
         setChapters(data || []);
-        setSelectedChapter("");
+        
+        // เซ็ต chapter หลังจากโหลดเสร็จ
+        if (chapterId) {
+          setSelectedChapter(chapterId);
+        } else {
+          setSelectedChapter("");
+        }
       } catch (error) {
         console.error("Failed to load chapters:", error);
       }
     };
-    loadChapters();
-  }, [selectedCourse]);
+    loadData();
+  }
+}, [searchParams]);
+
+// --- โหลดบทเรียนเมื่อเลือกวิชาแบบปกติ (ไม่ใช่จาก URL) ---
+useEffect(() => {
+  // ถ้ามาจาก URL ให้ข้าม
+  if (searchParams.get("courseId")) return;
+
+  if (!selectedCourse) {
+    setChapters([]);
+    setSelectedChapter("");
+    return;
+  }
+
+  const loadChapters = async () => {
+    try {
+      const data = await chaptersApi.getAll(selectedCourse);
+      setChapters(data || []);
+      setSelectedChapter("");
+    } catch (error) {
+      console.error("Failed to load chapters:", error);
+    }
+  };
+  loadChapters();
+}, [selectedCourse]);
 
   // --- 3. ฟังก์ชันกรองข้อมูล ---
   useEffect(() => {
@@ -135,15 +157,15 @@ export default function AdminVocabularyPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">จัดการคำศัพท์ ({filteredVocabs.length})</h1>
-        <Link 
+        <Link
           href={
-            selectedCourse 
-              ? `/admin/vocabulary/add?courseId=${selectedCourse}${selectedChapter ? `&chapterId=${selectedChapter}` : ''}`
-              : '/admin/vocabulary/add'
+            selectedCourse
+              ? `/admin/vocabulary/add?courseId=${selectedCourse}${selectedChapter ? `&chapterId=${selectedChapter}` : ""}`
+              : "/admin/vocabulary/add"
           }
         >
-  <Button>+ เพิ่มคำศัพท์</Button>
-</Link>
+          <Button>+ เพิ่มคำศัพท์</Button>
+        </Link>
       </div>
 
       {/* --- Filter Section --- */}
@@ -196,7 +218,7 @@ export default function AdminVocabularyPage() {
 
           {/* ปุ่มรีเซ็ต */}
           <div className="md:col-span-1 flex items-end">
-            <button 
+            <button
               onClick={() => {
                 setSelectedCourse("");
                 setSelectedChapter("");
