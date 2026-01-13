@@ -41,8 +41,9 @@ export default function AdminCoursesPage() {
   }, [q, courses]);
 
   const onDelete = async (id: string) => {
-    if (!confirm("ต้องการลบรายวิชานี้ใช่ไหม? การกระทำนี้ไม่สามารถย้อนกลับได้")) return;
-    
+    if (!confirm("ต้องการลบรายวิชานี้ใช่ไหม? การกระทำนี้ไม่สามารถย้อนกลับได้"))
+      return;
+
     try {
       await coursesApi.delete(id);
       // อัปเดต State โดยเอาตัวที่ลบออกไป
@@ -61,9 +62,7 @@ export default function AdminCoursesPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">จัดการรายวิชา</h1>
-          <p className="text-gray-600 mt-1">
-            เพิ่ม/แก้ไข/ลบรายวิชาในระบบ
-          </p>
+          <p className="text-gray-600 mt-1">เพิ่ม/แก้ไข/ลบรายวิชาในระบบ</p>
         </div>
 
         <div className="flex gap-2">
@@ -96,32 +95,57 @@ export default function AdminCoursesPage() {
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-sm font-semibold text-gray-700">รหัส</th>
-                <th className="px-6 py-3 text-sm font-semibold text-gray-700">ชื่อรายวิชา</th>
-                <th className="px-6 py-3 text-sm font-semibold text-gray-700">สร้างเมื่อ</th>
-                <th className="px-6 py-3 text-sm font-semibold text-gray-700 text-right">จัดการ</th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  รหัส
+                </th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  ชื่อรายวิชา
+                </th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-700">
+                  สร้างเมื่อ
+                </th>
+                <th className="px-6 py-3 text-sm font-semibold text-gray-700 text-right">
+                  จัดการ
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filtered.length === 0 ? (
                 <tr>
-                  <td className="px-6 py-8 text-center text-gray-500" colSpan={4}>
+                  <td
+                    className="px-6 py-8 text-center text-gray-500"
+                    colSpan={4}
+                  >
                     ไม่พบรายวิชา
                   </td>
                 </tr>
               ) : (
                 filtered.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium text-gray-900">{c.code}</td>
+                  <tr
+                    key={c.id}
+                    className="hover:bg-gray-50"
+                    onClick={() =>
+                      (window.location.href = `/admin/courses/${c.id}/edit`)
+                    }
+                  >
+                    <td className="px-6 py-4 font-medium text-gray-900">
+                      {c.code}
+                    </td>
                     <td className="px-6 py-4 text-gray-700">{c.name}</td>
                     <td className="px-6 py-4 text-gray-500 text-sm">
                       {new Date(c.created_at).toLocaleDateString("th-TH")}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <Link href={`/admin/courses/${c.id}/edit`}>
-                        <Button variant="secondary" size="sm">แก้ไข</Button>
+                        <Button variant="secondary" size="sm">
+                          แก้ไข
+                        </Button>
                       </Link>
-                      <Button variant="danger" size="sm" onClick={() => onDelete(c.id)}>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => onDelete(c.id)}
+                      >
                         ลบ
                       </Button>
                     </td>
