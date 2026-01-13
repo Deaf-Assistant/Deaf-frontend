@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FileUpload from '@/components/features/FileUpload';
-import { coursesApi, uploadApi } from '@/lib/api'; // ❌ เอา vocabularyApi ออก
+import { coursesApi, uploadApi } from '@/lib/api';
 import { FILE_LIMITS } from '@/lib/constants';
 
 interface VocabularyFormProps {
   vocabulary?: any;
   mode?: 'add' | 'edit';
-  onSubmit: (data: any) => void; // ✅ บังคับว่าต้องรับค่า data
-  isSubmitting?: boolean; // ✅ รับสถานะ loading จากแม่
+  onSubmit: (data: any) => void;
+  isSubmitting?: boolean;
 }
 
 export default function VocabularyForm({ 
@@ -25,7 +25,7 @@ export default function VocabularyForm({
   const [courses, setCourses] = useState<any[]>([]);
   const [chapters, setChapters] = useState<any[]>([]);
 
-  // 1. กำหนดค่าเริ่มต้น (รองรับทั้ง snake_case และ camelCase)
+  // 1. กำหนดค่าเริ่มต้น
   const [formData, setFormData] = useState({
     courseId: vocabulary?.course_id || vocabulary?.courseId || '',
     chapterId: vocabulary?.chapter_id || vocabulary?.chapterId || '',
@@ -36,9 +36,27 @@ export default function VocabularyForm({
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [fingerspellingVideoFile, setFingerspellingVideoFile] = useState<File | null>(null); // ⭐ เพิ่ม
   
   const [imagePreview, setImagePreview] = useState(vocabulary?.image_url || vocabulary?.imageUrl || '');
   const [videoPreview, setVideoPreview] = useState(vocabulary?.video_url || vocabulary?.videoUrl || '');
+  const [fingerspellingVideoPreview, setFingerspellingVideoPreview] = useState(
+    vocabulary?.fingerspelling_video_url || vocabulary?.fingerspellingVideoUrl || ''
+  ); 
+
+  // Sync กับ vocabulary prop
+  useEffect(() => {
+    if (vocabulary) {
+      console.log('🔄 Vocabulary prop changed:', vocabulary);
+      setFormData({
+        courseId: vocabulary?.course_id || vocabulary?.courseId || '',
+        chapterId: vocabulary?.chapter_id || vocabulary?.chapterId || '',
+        termThai: vocabulary?.term_thai || vocabulary?.termThai || '',
+        termEnglish: vocabulary?.term_english || vocabulary?.termEnglish || '',
+        definition: vocabulary?.definition || vocabulary?.description || '',
+      });
+    }
+  }, [vocabulary]);
 
   // Load courses
   useEffect(() => {
@@ -79,35 +97,38 @@ export default function VocabularyForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // ✅ ไม่ต้องเรียก API create/update ที่นี่!
-    // เราจะเตรียมข้อมูลแล้วส่งให้ Parent (AddPage) จัดการ
 
     try {
-      // Upload files ก่อน (ถ้ามี)
       let imageUrl = imagePreview;
       let videoUrl = videoPreview;
+      let fingerspellingVideoUrl = fingerspellingVideoPreview; // ⭐ เพิ่ม
 
+      // Upload image
       if (imageFile) {
         const uploadResult = await uploadApi.uploadFile(imageFile, 'image');
         imageUrl = uploadResult.url;
       }
 
+      // Upload video ภาษามือ
       if (videoFile) {
         const uploadResult = await uploadApi.uploadFile(videoFile, 'video');
         videoUrl = uploadResult.url;
       }
 
-      // รวบรวมข้อมูลเป็น camelCase ส่งกลับไปให้แม่
+      // ⭐ Upload video สะกดคำภาษามือ
+      if (fingerspellingVideoFile) {
+        const uploadResult = await uploadApi.uploadFile(fingerspellingVideoFile, 'video');
+        fingerspellingVideoUrl = uploadResult.url;
+      }
+
       const submitData = {
         ...formData,
         imageUrl,
         videoUrl,
+        fingerspellingVideoUrl, // ⭐ เพิ่ม
       };
 
       console.log('Form sending data:', submitData);
-      
-      // 🚀 ส่งข้อมูลไปให้ AddVocabularyPage จัดการต่อ
       onSubmit(submitData);
 
     } catch (error: any) {
@@ -117,7 +138,7 @@ export default function VocabularyForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* ส่วน Course Selection */}
+      {/* Course Selection */}
       <div>
         <label className="block text-base font-medium text-gray-700 mb-2">
           รายวิชา <span className="text-red-500">*</span>
@@ -138,7 +159,7 @@ export default function VocabularyForm({
         </select>
       </div>
 
-      {/* ส่วน Chapter Selection */}
+      {/* Chapter Selection */}
       <div>
         <label className="block text-base font-medium text-gray-700 mb-2">
           บทเรียน <span className="text-red-500">*</span>
@@ -160,7 +181,6 @@ export default function VocabularyForm({
         </select>
       </div>
 
-      {/* Inputs อื่นๆ */}
       <Input
         name="termThai"
         label="คำศัพท์ภาษาไทย"
@@ -193,6 +213,7 @@ export default function VocabularyForm({
         />
       </div>
 
+      {/* รูปภาพประกอบ */}
       <FileUpload
         type="image"
         accept={FILE_LIMITS.IMAGE.ACCEPTED.join(',')}
@@ -202,6 +223,7 @@ export default function VocabularyForm({
         onFileSelect={(file) => setImageFile(file)}
       />
 
+      {/* วิดีโอภาษามือ */}
       <FileUpload
         type="video"
         accept={FILE_LIMITS.VIDEO.ACCEPTED.join(',')}
@@ -211,10 +233,20 @@ export default function VocabularyForm({
         onFileSelect={(file) => setVideoFile(file)}
       />
 
+      {/*  วิดีโอสะกดคำภาษามือ  */}
+      <FileUpload
+        type="video"
+        accept={FILE_LIMITS.VIDEO.ACCEPTED.join(',')}
+        maxSize={FILE_LIMITS.VIDEO.MAX_SIZE}
+        label="วิดีโอสะกดคำภาษามือ"
+        preview={fingerspellingVideoPreview}
+        onFileSelect={(file) => setFingerspellingVideoFile(file)}
+      />
+
       <div className="flex gap-4 pt-4">
         <Button
           type="submit"
-          loading={isSubmitting} // ใช้ prop จากแม่
+          loading={isSubmitting}
           disabled={isSubmitting}
           size="lg"
         >
