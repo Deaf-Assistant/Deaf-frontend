@@ -7,6 +7,9 @@ import Button from '@/components/ui/Button';
 import FileUpload from '@/components/features/FileUpload';
 import { coursesApi, uploadApi } from '@/lib/api';
 import { FILE_LIMITS } from '@/lib/constants';
+import { labelTagsApi } from '@/lib/label_api';
+import { LabelTag } from '@/types/label';
+import Link from 'next/link';
 
 interface VocabularyFormProps {
   vocabulary?: any;
@@ -15,15 +18,17 @@ interface VocabularyFormProps {
   isSubmitting?: boolean;
 }
 
-export default function VocabularyForm({ 
-  vocabulary, 
-  mode = 'add', 
+export default function VocabularyForm({
+  vocabulary,
+  mode = 'add',
   onSubmit,
-  isSubmitting = false 
+  isSubmitting = false
 }: VocabularyFormProps) {
   const router = useRouter();
   const [courses, setCourses] = useState<any[]>([]);
   const [chapters, setChapters] = useState<any[]>([]);
+  const [categories, setCategories] = useState<LabelTag[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // 1. กำหนดค่าเริ่มต้น
   const [formData, setFormData] = useState({
@@ -37,12 +42,12 @@ export default function VocabularyForm({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [fingerspellingVideoFile, setFingerspellingVideoFile] = useState<File | null>(null); // ⭐ เพิ่ม
-  
+
   const [imagePreview, setImagePreview] = useState(vocabulary?.image_url || vocabulary?.imageUrl || '');
   const [videoPreview, setVideoPreview] = useState(vocabulary?.video_url || vocabulary?.videoUrl || '');
   const [fingerspellingVideoPreview, setFingerspellingVideoPreview] = useState(
     vocabulary?.fingerspelling_video_url || vocabulary?.fingerspellingVideoUrl || ''
-  ); 
+  );
 
   // Sync กับ vocabulary prop
   useEffect(() => {
@@ -58,18 +63,28 @@ export default function VocabularyForm({
     }
   }, [vocabulary]);
 
-  // Load courses
+  // Load courses and categories
   useEffect(() => {
-    const loadCourses = async () => {
+    const loadData = async () => {
       try {
-        const data = await coursesApi.getAll();
-        setCourses(data);
+        const [coursesData, categoriesData] = await Promise.all([
+          coursesApi.getAll(),
+          labelTagsApi.getAll(),
+        ]);
+        setCourses(coursesData);
+        setCategories(categoriesData);
+
+        // If editing, load existing category assignments
+        if (mode === 'edit' && vocabulary?.id) {
+          const existingTags = await labelTagsApi.getByVocabularyId(vocabulary.id);
+          setSelectedCategories(existingTags.map(tag => tag.id));
+        }
       } catch (error) {
-        console.error('Failed to load courses:', error);
+        console.error('Failed to load data:', error);
       }
     };
-    loadCourses();
-  }, []);
+    loadData();
+  }, [mode, vocabulary?.id]);
 
   // Load chapters
   useEffect(() => {
@@ -125,7 +140,8 @@ export default function VocabularyForm({
         ...formData,
         imageUrl,
         videoUrl,
-        fingerspellingVideoUrl, // ⭐ เพิ่ม
+        fingerspellingVideoUrl,
+        categoryIds: selectedCategories,
       };
 
       console.log('Form sending data:', submitData);
@@ -211,6 +227,66 @@ export default function VocabularyForm({
           placeholder="คำอธิบายสั้นๆ ที่เข้าใจง่าย..."
           className="w-full px-4 py-2.5 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+      </div>
+
+      {/* หมวดหมู่ (Categories) */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-base font-medium text-gray-700">
+            หมวดหมู่
+          </label>
+          <Link
+            href="/admin/label"
+            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            เพิ่มหมวดหมู่ใหม่
+          </Link>
+        </div>
+        {categories.length > 0 ? (
+          <div className="flex flex-wrap gap-2 p-3 border border-gray-300 rounded-lg min-h-[48px]">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {
+                  setSelectedCategories(prev =>
+                    prev.includes(cat.id)
+                      ? prev.filter(id => id !== cat.id)
+                      : [...prev, cat.id]
+                  );
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategories.includes(cat.id)
+                  ? 'ring-2 ring-offset-1'
+                  : 'opacity-60 hover:opacity-100'
+                  }`}
+                style={{
+                  backgroundColor: `${cat.color}20`,
+                  color: cat.color,
+                  borderColor: cat.color,
+                  ...(selectedCategories.includes(cat.id) && { ringColor: cat.color })
+                }}
+              >
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                {cat.name}
+                {selectedCategories.includes(cat.id) && (
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">
+            <p>ยังไม่มีหมวดหมู่</p>
+            <Link href="/admin/label" className="text-blue-600 hover:underline text-sm">
+              คลิกเพื่อสร้างหมวดหมู่ใหม่
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* รูปภาพประกอบ */}

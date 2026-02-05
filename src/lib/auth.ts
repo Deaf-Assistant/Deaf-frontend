@@ -1,4 +1,3 @@
-// src/lib/auth.ts
 import { User } from "@/types";
 
 export const auth = {

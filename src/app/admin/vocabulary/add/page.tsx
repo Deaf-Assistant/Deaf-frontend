@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Card from "@/components/ui/Card";
 import VocabularyForm from "@/components/features/VocabularyForm";
 import { vocabularyApi } from "@/lib/api";
+import { labelTagsApi } from "@/lib/label_api";
 
 // นำเข้า react-toastify
 import { ToastContainer, toast } from "react-toastify";
@@ -44,7 +45,14 @@ export default function AddVocabularyPage() {
         fingerspelling_video_url: formData.fingerspellingVideoUrl || null, // ⭐ เพิ่ม
       };
 
-      await vocabularyApi.create(payload);
+      const newVocab = await vocabularyApi.create(payload);
+
+      // บันทึกหมวดหมู่ที่เลือก
+      if (formData.categoryIds && formData.categoryIds.length > 0 && newVocab?.id) {
+        for (const categoryId of formData.categoryIds) {
+          await labelTagsApi.addToVocabulary(newVocab.id, categoryId);
+        }
+      }
 
       // เก็บค่า course และ chapter
       setLastCourseChapter({
