@@ -51,7 +51,7 @@ export default function Header() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Deaf Assistant</h1>
+              <h1 className="text-xl font-bold text-gray-900">DDCMU</h1>
               <p className="text-sm text-gray-600">ผู้ช่วยการเรียนรู้</p>
             </div>
           </Link>
