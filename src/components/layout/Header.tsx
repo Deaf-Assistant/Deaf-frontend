@@ -60,7 +60,7 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-1">
             <Link
               href={ROUTES.HOME}
-              className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.HOME)
+              className={`px-6 py-3 rounded-lg text-base font-medium transition ${isActive(ROUTES.HOME)
                 ? 'bg-blue-100 text-blue-700'
                 : 'text-gray-700 hover:bg-gray-100'
                 }`}
