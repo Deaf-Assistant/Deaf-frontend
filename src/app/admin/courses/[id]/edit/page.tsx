@@ -22,7 +22,6 @@ export default function EditCoursePage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
 
-  // State ข้อมูลรายวิชา
   const [formData, setFormData] = useState({
     code: "",
     name: "",
@@ -30,22 +29,17 @@ export default function EditCoursePage() {
     image_url: "",
   });
 
-  // State ข้อมูลบทเรียน
   const [chapters, setChapters] = useState<any[]>([]);
   const [newChapterName, setNewChapterName] = useState("");
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
   const [editChapterName, setEditChapterName] = useState("");
 
-  // โหลดข้อมูล
   useEffect(() => {
-    if (courseId) {
-      loadCourse();
-    }
+    if (courseId) loadCourse();
   }, [courseId]);
 
   const loadCourse = async () => {
     try {
-      // getById ของเราดึง chapters มาด้วยแล้ว (จากที่แก้ api.ts ไป)
       const data = await coursesApi.getById(courseId);
 
       setFormData({
@@ -85,7 +79,6 @@ export default function EditCoursePage() {
     reader.readAsDataURL(file);
   };
 
-  // --- ส่วนบันทึกข้อมูลรายวิชา ---
   const onSaveCourse = async () => {
     if (!formData.code || !formData.name) {
       toast.warning("กรุณากรอกรหัสและชื่อรายวิชา");
@@ -115,18 +108,14 @@ export default function EditCoursePage() {
       setSaving(false);
     }
   };
-  // คลิกที่ชื่อบทเรียนเพื่อไปที่หน้าจัดการคำศัพท์
+
   const handleChapterClick = (chapterId: string) => {
-    // เปลี่ยนหน้าไปที่หน้าจัดการคำศัพท์ พร้อมกับส่งพารามิเตอร์ courseId และ chapterId ไปใน URL
+    if (editingChapterId) return; // ⛔ กันเผลอกดตอนกำลังแก้
     router.push(
-      `/admin/vocabulary?courseId=${courseId}&chapterId=${chapterId}`
+      `/admin/vocabulary?courseId=${courseId}&chapterId=${chapterId}`,
     );
   };
-  if (loading) return <Loading />;
 
-  // --- ส่วนจัดการบทเรียน (CRUD) ---
-
-  // 1. เพิ่มบทเรียน
   const handleAddChapter = async () => {
     if (!newChapterName.trim()) return;
     try {
@@ -143,13 +132,11 @@ export default function EditCoursePage() {
     }
   };
 
-  // 2. เริ่มแก้ไข
   const startEditing = (chapter: any) => {
     setEditingChapterId(chapter.id);
     setEditChapterName(chapter.name);
   };
 
-  // 3. บันทึกการแก้ไข
   const handleUpdateChapter = async (chapterId: string) => {
     if (!editChapterName.trim()) return;
     try {
@@ -170,7 +157,6 @@ export default function EditCoursePage() {
     }
   };
 
-  // 4. ลบบทเรียน
   const handleDeleteChapter = async (chapterId: string) => {
     if (
       !confirm(

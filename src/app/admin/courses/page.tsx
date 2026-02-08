@@ -107,7 +107,8 @@ export default function AdminCoursesPage() {
       )}
 
       <div className="space-y-6">
-        <div className="flex items-start justify-between gap-4">
+        {/* Header */}
+      <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">จัดการรายวิชา</h1>
             <p className="text-gray-600 mt-1">เพิ่ม/แก้ไข/ลบรายวิชาในระบบ</p>
@@ -123,7 +124,8 @@ export default function AdminCoursesPage() {
           </div>
         </div>
 
-        <Card className="p-4">
+        {/* Search */}
+      <Card className="p-4">
           <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
             <div className="md:w-96">
               <Input
