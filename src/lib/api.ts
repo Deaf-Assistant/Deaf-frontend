@@ -229,10 +229,30 @@ export const reportsApi = {
         return result;
     },
     async getAll() {
-        const { data, error } = await supabase.from('reports').select('*, vocabularies(term_thai), users(name)');
+        const { data, error } = await supabase.from('reports').select('*, vocabularies(term_thai,id), users(name)');
         if (error) throw error;
         return data;
     },
+
+// ✅ ใหม่: ดึง report ของ user คนเดียว
+  async getMine(userId: string) {
+    const { data, error } = await supabase
+      .from('reports')
+      .select(`
+        *,
+        vocabularies (
+          id,
+          term_thai,
+          term_english
+        )
+      `)
+      .eq('reported_by', userId)
+      .order('reported_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+  
 async updateStatus(id: string, status: string) {
     const { data, error } = await supabase
       .from('reports')       // ชื่อตารางต้องตรงเป๊ะ
@@ -248,6 +268,8 @@ async updateStatus(id: string, status: string) {
     return data;
   }
 };
+
+
 
 
 

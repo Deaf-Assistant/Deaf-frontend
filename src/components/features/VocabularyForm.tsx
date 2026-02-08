@@ -1,67 +1,89 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
-import FileUpload from '@/components/features/FileUpload';
-import { coursesApi, uploadApi } from '@/lib/api';
-import { FILE_LIMITS } from '@/lib/constants';
-import { labelTagsApi } from '@/lib/label_api';
-import { LabelTag } from '@/types/label';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import FileUpload from "@/components/features/FileUpload";
+import { coursesApi, uploadApi } from "@/lib/api";
+import { FILE_LIMITS } from "@/lib/constants";
+import { labelTagsApi } from "@/lib/label_api";
+import { LabelTag } from "@/types/label";
+import { vocabularyApi } from "@/lib/api";
+import Link from "next/link";
+
+async function urlToFile(url: string, filename: string) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new File([blob], filename, { type: blob.type });
+}
 
 interface VocabularyFormProps {
   vocabulary?: any;
-  mode?: 'add' | 'edit';
+  mode?: "add" | "edit";
   onSubmit: (data: any) => void;
   isSubmitting?: boolean;
 }
 
 export default function VocabularyForm({
   vocabulary,
-  mode = 'add',
+  mode = "add",
   onSubmit,
-  isSubmitting = false
+  isSubmitting = false,
 }: VocabularyFormProps) {
   const router = useRouter();
   const [courses, setCourses] = useState<any[]>([]);
   const [chapters, setChapters] = useState<any[]>([]);
   const [categories, setCategories] = useState<LabelTag[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  // 🔍 autocomplete vocab
+  const [allVocabularies, setAllVocabularies] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // 1. กำหนดค่าเริ่มต้น
   const [formData, setFormData] = useState({
-    courseId: vocabulary?.course_id || vocabulary?.courseId || '',
-    chapterId: vocabulary?.chapter_id || vocabulary?.chapterId || '',
-    termThai: vocabulary?.term_thai || vocabulary?.termThai || '',
-    termEnglish: vocabulary?.term_english || vocabulary?.termEnglish || '',
-    definition: vocabulary?.definition || vocabulary?.description || '',
+    courseId: vocabulary?.course_id || vocabulary?.courseId || "",
+    chapterId: vocabulary?.chapter_id || vocabulary?.chapterId || "",
+    termThai: vocabulary?.term_thai || vocabulary?.termThai || "",
+    termEnglish: vocabulary?.term_english || vocabulary?.termEnglish || "",
+    definition: vocabulary?.definition || vocabulary?.description || "",
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [fingerspellingVideoFile, setFingerspellingVideoFile] = useState<File | null>(null); // ⭐ เพิ่ม
+  const [fingerspellingVideoFile, setFingerspellingVideoFile] =
+    useState<File | null>(null); // ⭐ เพิ่ม
 
-  const [imagePreview, setImagePreview] = useState(vocabulary?.image_url || vocabulary?.imageUrl || '');
-  const [videoPreview, setVideoPreview] = useState(vocabulary?.video_url || vocabulary?.videoUrl || '');
+  const [imagePreview, setImagePreview] = useState(
+    vocabulary?.image_url || vocabulary?.imageUrl || "",
+  );
+  const [videoPreview, setVideoPreview] = useState(
+    vocabulary?.video_url || vocabulary?.videoUrl || "",
+  );
   const [fingerspellingVideoPreview, setFingerspellingVideoPreview] = useState(
-    vocabulary?.fingerspelling_video_url || vocabulary?.fingerspellingVideoUrl || ''
+    vocabulary?.fingerspelling_video_url ||
+      vocabulary?.fingerspellingVideoUrl ||
+      "",
   );
 
   // Sync กับ vocabulary prop
   useEffect(() => {
     if (vocabulary) {
-      console.log('🔄 Vocabulary prop changed:', vocabulary);
+      console.log("🔄 Vocabulary prop changed:", vocabulary);
       setFormData({
-        courseId: vocabulary?.course_id || vocabulary?.courseId || '',
-        chapterId: vocabulary?.chapter_id || vocabulary?.chapterId || '',
-        termThai: vocabulary?.term_thai || vocabulary?.termThai || '',
-        termEnglish: vocabulary?.term_english || vocabulary?.termEnglish || '',
-        definition: vocabulary?.definition || vocabulary?.description || '',
+        courseId: vocabulary?.course_id || vocabulary?.courseId || "",
+        chapterId: vocabulary?.chapter_id || vocabulary?.chapterId || "",
+        termThai: vocabulary?.term_thai || vocabulary?.termThai || "",
+        termEnglish: vocabulary?.term_english || vocabulary?.termEnglish || "",
+        definition: vocabulary?.definition || vocabulary?.description || "",
       });
     }
   }, [vocabulary]);
+
+  useEffect(() => {
+    vocabularyApi.getAll().then(setAllVocabularies).catch(console.error);
+  }, []);
 
   // Load courses and categories
   useEffect(() => {
@@ -75,12 +97,14 @@ export default function VocabularyForm({
         setCategories(categoriesData);
 
         // If editing, load existing category assignments
-        if (mode === 'edit' && vocabulary?.id) {
-          const existingTags = await labelTagsApi.getByVocabularyId(vocabulary.id);
-          setSelectedCategories(existingTags.map(tag => tag.id));
+        if (mode === "edit" && vocabulary?.id) {
+          const existingTags = await labelTagsApi.getByVocabularyId(
+            vocabulary.id,
+          );
+          setSelectedCategories(existingTags.map((tag) => tag.id));
         }
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error("Failed to load data:", error);
       }
     };
     loadData();
@@ -94,7 +118,7 @@ export default function VocabularyForm({
           const course = await coursesApi.getById(formData.courseId);
           setChapters(course.chapters || []);
         } catch (error) {
-          console.error('Failed to load chapters:', error);
+          console.error("Failed to load chapters:", error);
         }
       } else {
         setChapters([]);
@@ -103,7 +127,11 @@ export default function VocabularyForm({
     loadChapters();
   }, [formData.courseId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -120,19 +148,22 @@ export default function VocabularyForm({
 
       // Upload image
       if (imageFile) {
-        const uploadResult = await uploadApi.uploadFile(imageFile, 'image');
+        const uploadResult = await uploadApi.uploadFile(imageFile, "image");
         imageUrl = uploadResult.url;
       }
 
       // Upload video ภาษามือ
       if (videoFile) {
-        const uploadResult = await uploadApi.uploadFile(videoFile, 'video');
+        const uploadResult = await uploadApi.uploadFile(videoFile, "video");
         videoUrl = uploadResult.url;
       }
 
       // ⭐ Upload video สะกดคำภาษามือ
       if (fingerspellingVideoFile) {
-        const uploadResult = await uploadApi.uploadFile(fingerspellingVideoFile, 'video');
+        const uploadResult = await uploadApi.uploadFile(
+          fingerspellingVideoFile,
+          "video",
+        );
         fingerspellingVideoUrl = uploadResult.url;
       }
 
@@ -144,11 +175,10 @@ export default function VocabularyForm({
         categoryIds: selectedCategories,
       };
 
-      console.log('Form sending data:', submitData);
+      console.log("Form sending data:", submitData);
       onSubmit(submitData);
-
     } catch (error: any) {
-      alert('เกิดข้อผิดพลาดในการอัปโหลดไฟล์: ' + error.message);
+      alert("เกิดข้อผิดพลาดในการอัปโหลดไฟล์: " + error.message);
     }
   };
 
@@ -197,14 +227,88 @@ export default function VocabularyForm({
         </select>
       </div>
 
-      <Input
-        name="termThai"
-        label="คำศัพท์ภาษาไทย"
-        value={formData.termThai}
-        onChange={handleChange}
-        required
-        placeholder="เช่น วิศวกรรมซอฟต์แวร์"
-      />
+      <div className="relative">
+        <Input
+          name="termThai"
+          label="คำศัพท์ภาษาไทย"
+          value={formData.termThai}
+          required
+          placeholder="เช่น วิศวกรรมซอฟต์แวร์"
+          onFocus={() => setShowSuggestions(true)}
+          onChange={(e) => {
+            const value = e.target.value;
+
+            setFormData((prev) => ({ ...prev, termThai: value }));
+
+            if (!value.trim()) {
+              setSuggestions([]);
+              return;
+            }
+
+            const q = value.toLowerCase();
+
+            const matched = allVocabularies.filter(
+              (v) =>
+                v.term_thai?.toLowerCase().includes(q) ||
+                v.term_english?.toLowerCase().includes(q) ||
+                v.labels?.some((l: any) => l.name.toLowerCase().includes(q)),
+            );
+
+            setSuggestions(matched.slice(0, 6));
+          }}
+        />
+
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute z-30 mt-1 w-full bg-white border rounded-lg shadow">
+            {suggestions.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={async () => {
+                  // 1️⃣ text
+                  setFormData({
+                    ...formData,
+                    termThai: v.term_thai,
+                    termEnglish: v.term_english || "",
+                    definition: v.definition || "",
+                  });
+
+                  // 2️⃣ โหลดหมวดหมู่จาก backend (สำคัญ!)
+                  const tags = await labelTagsApi.getByVocabularyId(v.id);
+                  setSelectedCategories(tags.map((t) => t.id));
+
+                  // 3️⃣ รูปภาพ
+                  if (v.image_url) {
+                    const file = await urlToFile(v.image_url, "image.jpg");
+                    setImageFile(file);
+                    setImagePreview(v.image_url);
+                  }
+
+                  // 4️⃣ วิดีโอภาษามือ
+                  if (v.video_url) {
+                    setVideoPreview(v.video_url);
+                    setVideoFile(null);
+                  }
+
+                  // 5️⃣ วิดีโอสะกดคำ
+                  if (v.fingerspelling_video_url) {
+                    setFingerspellingVideoPreview(v.fingerspelling_video_url);
+                    setFingerspellingVideoFile(null);
+                  }
+
+                  setShowSuggestions(false);
+                }}
+              >
+                <div className="font-medium">{v.term_thai}</div>
+                {v.term_english && (
+                  <div className="text-xs text-gray-500">{v.term_english}</div>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <Input
         name="termEnglish"
@@ -239,8 +343,18 @@ export default function VocabularyForm({
             href="/admin/label"
             className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             เพิ่มหมวดหมู่ใหม่
           </Link>
@@ -252,28 +366,42 @@ export default function VocabularyForm({
                 key={cat.id}
                 type="button"
                 onClick={() => {
-                  setSelectedCategories(prev =>
+                  setSelectedCategories((prev) =>
                     prev.includes(cat.id)
-                      ? prev.filter(id => id !== cat.id)
-                      : [...prev, cat.id]
+                      ? prev.filter((id) => id !== cat.id)
+                      : [...prev, cat.id],
                   );
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategories.includes(cat.id)
-                  ? 'ring-2 ring-offset-1'
-                  : 'opacity-60 hover:opacity-100'
-                  }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  selectedCategories.includes(cat.id)
+                    ? "ring-2 ring-offset-1"
+                    : "opacity-60 hover:opacity-100"
+                }`}
                 style={{
                   backgroundColor: `${cat.color}20`,
                   color: cat.color,
                   borderColor: cat.color,
-                  ...(selectedCategories.includes(cat.id) && { ringColor: cat.color })
+                  ...(selectedCategories.includes(cat.id) && {
+                    ringColor: cat.color,
+                  }),
                 }}
               >
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                <div
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: cat.color }}
+                />
                 {cat.name}
                 {selectedCategories.includes(cat.id) && (
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 )}
               </button>
@@ -282,7 +410,10 @@ export default function VocabularyForm({
         ) : (
           <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">
             <p>ยังไม่มีหมวดหมู่</p>
-            <Link href="/admin/label" className="text-blue-600 hover:underline text-sm">
+            <Link
+              href="/admin/label"
+              className="text-blue-600 hover:underline text-sm"
+            >
               คลิกเพื่อสร้างหมวดหมู่ใหม่
             </Link>
           </div>
@@ -292,7 +423,7 @@ export default function VocabularyForm({
       {/* รูปภาพประกอบ */}
       <FileUpload
         type="image"
-        accept={FILE_LIMITS.IMAGE.ACCEPTED.join(',')}
+        accept={FILE_LIMITS.IMAGE.ACCEPTED.join(",")}
         maxSize={FILE_LIMITS.IMAGE.MAX_SIZE}
         label="รูปภาพประกอบ"
         preview={imagePreview}
@@ -302,7 +433,7 @@ export default function VocabularyForm({
       {/* วิดีโอภาษามือ */}
       <FileUpload
         type="video"
-        accept={FILE_LIMITS.VIDEO.ACCEPTED.join(',')}
+        accept={FILE_LIMITS.VIDEO.ACCEPTED.join(",")}
         maxSize={FILE_LIMITS.VIDEO.MAX_SIZE}
         label="วิดีโอภาษามือ"
         preview={videoPreview}
@@ -312,7 +443,7 @@ export default function VocabularyForm({
       {/*  วิดีโอสะกดคำภาษามือ  */}
       <FileUpload
         type="video"
-        accept={FILE_LIMITS.VIDEO.ACCEPTED.join(',')}
+        accept={FILE_LIMITS.VIDEO.ACCEPTED.join(",")}
         maxSize={FILE_LIMITS.VIDEO.MAX_SIZE}
         label="วิดีโอสะกดคำภาษามือ"
         preview={fingerspellingVideoPreview}
@@ -326,7 +457,7 @@ export default function VocabularyForm({
           disabled={isSubmitting}
           size="lg"
         >
-          {mode === 'add' ? 'เพิ่มคำศัพท์' : 'อัปเดตคำศัพท์'}
+          {mode === "add" ? "เพิ่มคำศัพท์" : "อัปเดตคำศัพท์"}
         </Button>
 
         <Button

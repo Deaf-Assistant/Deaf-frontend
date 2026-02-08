@@ -10,11 +10,10 @@ import { ROUTES } from "@/lib/constants";
 import { coursesApi } from "@/lib/api";
 
 export default function AdminCoursesPage() {
-  const [courses, setCourses] = useState<any[]>([]); // เปลี่ยน type เป็น any[] หรือสร้าง interface
+  const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
 
-  // โหลดข้อมูลเมื่อเข้าหน้าเว็บ
   useEffect(() => {
     loadCourses();
   }, []);
@@ -46,7 +45,6 @@ export default function AdminCoursesPage() {
 
     try {
       await coursesApi.delete(id);
-      // อัปเดต State โดยเอาตัวที่ลบออกไป
       setCourses((prev) => prev.filter((c) => c.id !== id));
       alert("ลบรายวิชาสำเร็จ");
     } catch (error) {
@@ -59,6 +57,7 @@ export default function AdminCoursesPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">จัดการรายวิชา</h1>
@@ -75,6 +74,7 @@ export default function AdminCoursesPage() {
         </div>
       </div>
 
+      {/* Search */}
       <Card className="p-4">
         <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
           <div className="md:w-96">
@@ -90,6 +90,7 @@ export default function AdminCoursesPage() {
         </div>
       </Card>
 
+      {/* Table */}
       <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -109,6 +110,7 @@ export default function AdminCoursesPage() {
                 </th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-gray-100">
               {filtered.length === 0 ? (
                 <tr>
@@ -121,26 +123,32 @@ export default function AdminCoursesPage() {
                 </tr>
               ) : (
                 filtered.map((c) => (
-                  <tr
-                    key={c.id}
-                    className="hover:bg-gray-50"
-                    onClick={() =>
-                      (window.location.href = `/admin/courses/${c.id}/edit`)
-                    }
-                  >
+                  <tr key={c.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-medium text-gray-900">
                       {c.code}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">{c.name}</td>
+
+                    {/* คลิกชื่อ = ไปหน้าแก้ไข */}
+                    <td className="px-6 py-4">
+                      <Link
+                        href={`/admin/courses/${c.id}/edit`}
+                        className="text-blue-600 hover:underline font-medium"
+                      >
+                        {c.name}
+                      </Link>
+                    </td>
+
                     <td className="px-6 py-4 text-gray-500 text-sm">
                       {new Date(c.created_at).toLocaleDateString("th-TH")}
                     </td>
+
                     <td className="px-6 py-4 text-right space-x-2">
                       <Link href={`/admin/courses/${c.id}/edit`}>
                         <Button variant="secondary" size="sm">
                           แก้ไข
                         </Button>
                       </Link>
+
                       <Button
                         variant="danger"
                         size="sm"
