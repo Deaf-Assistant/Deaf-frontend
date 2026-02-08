@@ -9,6 +9,7 @@ export const ROUTES = {
   ADMIN_COURSES: '/admin/courses',
   ADMIN_VOCABULARY: '/admin/vocabulary',
   FAVORITES: '/favorite',
+  QUIZ: '/quiz',
 };
 
 export const VIDEO_SPEEDS = [0.5, 0.75, 1.0];

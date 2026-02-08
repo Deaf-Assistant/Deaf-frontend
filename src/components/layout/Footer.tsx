@@ -1,3 +1,6 @@
+import Link from 'next/link';
+import { ROUTES } from '@/lib/constants';
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -18,7 +21,7 @@ export default function Footer() {
               <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
               <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
             </svg>
-            <span>support@deafassistant.cmu.ac.th</span>
+            <span>natapon_p@cmu.ac.th</span>
           </div>
 
           <div className="flex items-center justify-center">
@@ -61,7 +64,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="border-t border-gray-800 pt-6 w-full">
           <p className="text-gray-400 text-sm">
-            © {currentYear} Deaf Assistant - CMU. All rights reserved.
+            © {currentYear} DDCMU. All rights reserved.
           </p>
           <p className="text-gray-500 text-xs mt-2">
             พัฒนาโดย T4: Inew - Software Engineering Project

@@ -32,11 +32,18 @@ export default function HomePage() {
                   </span>
                 </Button>
               </Link>
+
               <Link href={ROUTES.VOCABULARY}>
                 <Button size="lg" variant="secondary" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600">
                   <span className="text-lg">ค้นหาคำศัพท์</span>
                 </Button>
               </Link>
+              <Link href={ROUTES.QUIZ}>
+                <Button size="lg" variant="secondary" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600">
+                  <span className="text-lg">ทดสอบความรู้</span>
+                </Button>
+              </Link>
+
             </div>
           </div>
         </div>

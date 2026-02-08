@@ -5,9 +5,10 @@ interface VideoPlayerProps {
   videoUrl: string;
   title?: string;
   autoLoop?: boolean;
+  poster?: string;
 }
 
-const VideoPlayer: FC<VideoPlayerProps> = ({ videoUrl, title, autoLoop = false }) => {
+const VideoPlayer: FC<VideoPlayerProps> = ({ videoUrl, title, autoLoop = false, poster }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoLoop);
@@ -19,6 +20,11 @@ const VideoPlayer: FC<VideoPlayerProps> = ({ videoUrl, title, autoLoop = false }
   const [showControls, setShowControls] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+
+  // Safety check: if videoUrl is missing, return null or placeholder
+  if (!videoUrl) {
+    return <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">No Video Source</div>;
+  }
 
   const isGif = videoUrl.toLowerCase().endsWith('.gif');
 
@@ -148,6 +154,7 @@ const VideoPlayer: FC<VideoPlayerProps> = ({ videoUrl, title, autoLoop = false }
         className="w-full h-full object-contain cursor-pointer"
         src={videoUrl}
         title={title}
+        poster={poster}
         autoPlay={autoLoop}
         loop={autoLoop}
         muted={isMuted} // Controlled by state

@@ -1,4 +1,3 @@
-// src/components/features/CourseCard.tsx
 'use client'
 
 import { Course } from '@/types';
@@ -20,10 +19,9 @@ export default function CourseCard({ course, vocabularyCount }: CourseCardProps)
     >
       {/* Course image */}
       <div className="relative h-40 bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 overflow-hidden">
-        {/* แก้ไขตรงนี้: เปลี่ยนจาก imageUrl เป็น image_url */}
         {course.image_url ? (
           <Image
-            src={course.image_url} // แก้ไขตรงนี้ด้วย
+            src={course.image_url}
             alt={course.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-200"
