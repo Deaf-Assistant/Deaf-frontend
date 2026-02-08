@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
@@ -11,6 +11,9 @@ import { ROUTES } from '@/lib/constants';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect');
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -33,12 +36,14 @@ export default function LoginPage() {
 
     try {
       const response = await authApi.login(formData.email, formData.password);
-      
+
       auth.setToken(response.token);
       auth.setUser(response.user);
 
-      // Redirect based on role
-      if (auth.isAdmin()) {
+      // Redirect to the original page if specified, otherwise based on role
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else if (auth.isAdmin()) {
         router.push(ROUTES.ADMIN_DASHBOARD);
       } else {
         router.push(ROUTES.COURSES);

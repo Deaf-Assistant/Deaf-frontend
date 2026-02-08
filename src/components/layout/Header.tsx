@@ -51,7 +51,7 @@ export default function Header() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Deaf Assistant</h1>
+              <h1 className="text-xl font-bold text-gray-900">DDCMU</h1>
               <p className="text-sm text-gray-600">ผู้ช่วยการเรียนรู้</p>
             </div>
           </Link>
@@ -60,45 +60,53 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-1">
             <Link
               href={ROUTES.HOME}
-              className={`px-4 py-2 rounded-lg text-base font-medium transition ${
-                isActive(ROUTES.HOME)
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.HOME)
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+                }`}
             >
               หน้าแรก
             </Link>
 
             <Link
               href={ROUTES.COURSES}
-              className={`px-4 py-2 rounded-lg text-base font-medium transition ${
-                isActive(ROUTES.COURSES) || pathname.startsWith('/courses')
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.COURSES) || pathname.startsWith('/courses')
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+                }`}
             >
               รายวิชา
             </Link>
 
             <Link
               href={ROUTES.VOCABULARY}
-              className={`px-4 py-2 rounded-lg text-base font-medium transition ${
-                isActive(ROUTES.VOCABULARY) || pathname.startsWith('/vocabulary')
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.VOCABULARY) || pathname.startsWith('/vocabulary')
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+                }`}
             >
               คำศัพท์
             </Link>
 
             {user && (
               <Link
+                href={ROUTES.FAVORITES}
+                className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.FAVORITES) 
+                  ? 'bg-yellow-100 text-yellow-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
+              >
+              รายการโปรด
+              </Link>
+            )}
+
+            {user && (
+              <Link
                 href={ROUTES.REPORT}
-                className={`px-4 py-2 rounded-lg text-base font-medium transition ${
-                  isActive(ROUTES.REPORT)
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.REPORT)
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 รายงานปัญหา
               </Link>
@@ -107,45 +115,44 @@ export default function Header() {
             {user && auth.isAdmin() && (
               <Link
                 href={ROUTES.ADMIN_DASHBOARD}
-                className={`px-4 py-2 rounded-lg text-base font-medium transition ${
-                  pathname.startsWith('/admin')
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-lg text-base font-medium transition ${pathname.startsWith('/admin')
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 จัดการระบบ
               </Link>
             )}
           </nav>
 
-{/* Desktop User section */}
-<div className="hidden md:flex items-center space-x-3">
-  {user ? (
-    <div className="flex items-center space-x-4">
-      <div className="text-right">
-        {/* ใช้ ? หลัง user และ user_metadata เสมอ */}
-        <p className="text-base font-medium text-gray-900 leading-none">
-          {user?.user_metadata?.name || user?.name || 'User'}
-        </p>
-        <p className="text-xs text-gray-500 font-semibold uppercase mt-1">
-          {user?.user_metadata?.role || user?.role || 'authenticated'}
-        </p>
-      </div>
-      <Button variant="secondary" onClick={handleLogout}>
-        ออกจากระบบ
-      </Button>
-    </div>
-  ) : (
-    <>
-      <Link href={ROUTES.LOGIN}>
-        <Button variant="secondary">เข้าสู่ระบบ</Button>
-      </Link>
-      <Link href={ROUTES.REGISTER}>
-        <Button>ลงทะเบียน</Button>
-      </Link>
-    </>
-  )}
-</div>
+          {/* Desktop User section */}
+          <div className="hidden md:flex items-center space-x-3">
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  {/* ใช้ ? หลัง user และ user_metadata เสมอ */}
+                  <p className="text-base font-medium text-gray-900 leading-none">
+                    {user?.user_metadata?.name || user?.name || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500 font-semibold uppercase mt-1">
+                    {user?.user_metadata?.role || user?.role || 'authenticated'}
+                  </p>
+                </div>
+                <Button variant="secondary" onClick={handleLogout}>
+                  ออกจากระบบ
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link href={ROUTES.LOGIN}>
+                  <Button variant="secondary">เข้าสู่ระบบ</Button>
+                </Link>
+                <Link href={ROUTES.REGISTER}>
+                  <Button>ลงทะเบียน</Button>
+                </Link>
+              </>
+            )}
+          </div>
 
           {/* Mobile menu button */}
           <button
@@ -168,9 +175,8 @@ export default function Header() {
             <nav className="flex flex-col space-y-2">
               <Link
                 href={ROUTES.HOME}
-                className={`px-4 py-3 rounded-lg text-base font-medium ${
-                  isActive(ROUTES.HOME) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                }`}
+                className={`px-4 py-3 rounded-lg text-base font-medium ${isActive(ROUTES.HOME) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 หน้าแรก
@@ -178,9 +184,8 @@ export default function Header() {
 
               <Link
                 href={ROUTES.COURSES}
-                className={`px-4 py-3 rounded-lg text-base font-medium ${
-                  pathname.startsWith('/courses') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                }`}
+                className={`px-4 py-3 rounded-lg text-base font-medium ${pathname.startsWith('/courses') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 รายวิชา
@@ -188,20 +193,30 @@ export default function Header() {
 
               <Link
                 href={ROUTES.VOCABULARY}
-                className={`px-4 py-3 rounded-lg text-base font-medium ${
-                  pathname.startsWith('/vocabulary') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                }`}
+                className={`px-4 py-3 rounded-lg text-base font-medium ${pathname.startsWith('/vocabulary') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 คำศัพท์
               </Link>
 
+              {/* Favorites - Show for all logged-in users */}
+              {user && (
+                <Link
+                  href={ROUTES.FAVORITES}
+                  className={`px-4 py-3 rounded-lg text-base font-medium ${isActive(ROUTES.FAVORITES) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                    }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  รายการโปรด
+                </Link>
+              )}
+
               {user && (
                 <Link
                   href={ROUTES.REPORT}
-                  className={`px-4 py-3 rounded-lg text-base font-medium ${
-                    isActive(ROUTES.REPORT) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                  }`}
+                  className={`px-4 py-3 rounded-lg text-base font-medium ${isActive(ROUTES.REPORT) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                    }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   รายงานปัญหา
@@ -211,9 +226,8 @@ export default function Header() {
               {user && auth.isAdmin() && (
                 <Link
                   href={ROUTES.ADMIN_DASHBOARD}
-                  className={`px-4 py-3 rounded-lg text-base font-medium ${
-                    pathname.startsWith('/admin') ? 'bg-purple-100 text-purple-700' : 'text-gray-700'
-                  }`}
+                  className={`px-4 py-3 rounded-lg text-base font-medium ${pathname.startsWith('/admin') ? 'bg-purple-100 text-purple-700' : 'text-gray-700'
+                    }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   จัดการระบบ

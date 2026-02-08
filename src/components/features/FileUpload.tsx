@@ -12,13 +12,13 @@ interface FileUploadProps {
   preview?: string;
 }
 
-export default function FileUpload({ 
-  accept, 
-  maxSize, 
-  onFileSelect, 
+export default function FileUpload({
+  accept,
+  maxSize,
+  onFileSelect,
   label,
   type,
-  preview 
+  preview
 }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState('');
@@ -34,9 +34,21 @@ export default function FileUpload({
       return false;
     }
 
-    // Check file type
-    const acceptedTypes = accept.split(',').map(t => t.trim());
-    if (!acceptedTypes.includes(file.type)) {
+    // Check file type (Extension OR Mime type)
+    const acceptedTypes = accept.split(',').map(t => t.trim().toLowerCase());
+    const fileType = file.type.toLowerCase();
+    const fileName = file.name.toLowerCase();
+
+    const isValid = acceptedTypes.some(type => {
+      // Create regex for extension check
+      if (type.startsWith('.')) {
+        return fileName.endsWith(type);
+      }
+      // Check mime type
+      return fileType === type;
+    });
+
+    if (!isValid) {
       setError('ประเภทไฟล์ไม่ถูกต้อง');
       return false;
     }
@@ -47,7 +59,7 @@ export default function FileUpload({
   const handleFile = (file: File) => {
     if (validateFile(file)) {
       onFileSelect(file);
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {

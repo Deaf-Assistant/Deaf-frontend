@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import Loading from "@/components/ui/Loading";
 import VocabularyForm from "@/components/features/VocabularyForm";
 import { vocabularyApi } from "@/lib/api";
+import { labelTagsApi } from "@/lib/label_api";
 
 export default function EditVocabularyPage() {
   const { id } = useParams();
@@ -40,19 +41,41 @@ export default function EditVocabularyPage() {
         term_english: formData.termEnglish,
         definition: formData.definition,
         course_id: formData.courseId,
-        
+
         // 🔥 จุดสำคัญ: แปลง chapterId -> chapter_id
-        chapter_id: formData.chapterId, 
-        
+        chapter_id: formData.chapterId,
+
         image_url: formData.imageUrl,
         video_url: formData.videoUrl
       };
 
       await vocabularyApi.update(id as string, payload);
+
+      // อัพเดทหมวดหมู่: ลบของเก่าและเพิ่มใหม่
+      if (formData.categoryIds) {
+        // ดึง categories เดิมที่ผูกกับ vocab นี้
+        const existingTags = await labelTagsApi.getByVocabularyId(id as string);
+
+        // ลบอันที่ไม่ได้เลือกแล้ว
+        for (const tag of existingTags) {
+          if (!formData.categoryIds.includes(tag.id)) {
+            await labelTagsApi.removeFromVocabulary(id as string, tag.id);
+          }
+        }
+
+        // เพิ่มอันที่เลือกใหม่
+        for (const categoryId of formData.categoryIds) {
+          const alreadyExists = existingTags.some(tag => tag.id === categoryId);
+          if (!alreadyExists) {
+            await labelTagsApi.addToVocabulary(id as string, categoryId);
+          }
+        }
+      }
+
       alert("แก้ไขข้อมูลสำเร็จ");
       router.push("/admin/vocabulary");
       router.refresh();
-      
+
     } catch (error: any) {
       console.error(error);
       alert("เกิดข้อผิดพลาด: " + error.message);
@@ -66,11 +89,11 @@ export default function EditVocabularyPage() {
   return (
     <Card className="max-w-2xl">
       <h1 className="text-xl font-bold mb-4">แก้ไขคำศัพท์</h1>
-      <VocabularyForm 
-        vocabulary={vocabulary} 
-        mode="edit" 
-        onSubmit={onSubmit} 
-        isSubmitting={saving} 
+      <VocabularyForm
+        vocabulary={vocabulary}
+        mode="edit"
+        onSubmit={onSubmit}
+        isSubmitting={saving}
       />
     </Card>
   );
