@@ -110,31 +110,29 @@ export default function VocabularyDetailPage() {
 
               {/*  ปุ่มสลับวิดีโอ - แยกเป็นแถวละปุ่ม */}
               <div className="space-y-3">
-                {videoUrl && (
-                  <button
-                    onClick={() => setActiveVideo('main')}
-                    className={`w-full px-4 py-3 rounded-lg font-medium transition ${
-                      activeVideo === 'main'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                    }`}
-                  >
-                    📹 วิดีโอภาษามือ
-                  </button>
-                )}
-                {fingerspellingVideoUrl && (
-                  <button
-                    onClick={() => setActiveVideo('fingerspelling')}
-                    className={`w-full px-4 py-3 rounded-lg font-medium transition ${
-                      activeVideo === 'fingerspelling'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                    }`}
-                  >
-                    ✋ สะกดคำภาษามือ
-                  </button>
-                )}
-              </div>
+  {videoUrl && (
+    <Button
+      fullWidth
+      size="lg"
+      variant={activeVideo === 'main' ? 'primary' : 'secondary'}
+      onClick={() => setActiveVideo('main')}
+    >
+      📹 ดูท่าทางมือ
+    </Button>
+  )}
+
+  {fingerspellingVideoUrl && (
+    <Button
+      fullWidth
+      size="lg"
+      variant={activeVideo === 'fingerspelling' ? 'primary' : 'secondary'}
+      onClick={() => setActiveVideo('fingerspelling')}
+    >
+      ✋ สะกดคำด้วยมือ
+    </Button>
+  )}
+</div>
+
             </div>
 
             {/* ฝั่งขวา: ข้อมูลคำศัพท์ */}
@@ -187,29 +185,24 @@ export default function VocabularyDetailPage() {
 
               {/* ⭐ ปุ่มด้านล่าง - เพิ่มระยะห่าง */}
               <div className="space-y-4">
-                <Link 
-                  href={`${ROUTES.REPORT}?vocabularyId=${vocabulary.id}&term=${encodeURIComponent(termThai)}`}
-                  className="block"
-                >
-                  <Button fullWidth variant="secondary" size="lg">
-                    <span className="flex items-center justify-center">
-                      <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      รายงานปัญหา
-                    </span>
-                  </Button>
-                </Link>
-                
-                <Button
-                  fullWidth
-                  variant="secondary"
-                  size="lg"
-                  onClick={() => router.back()}
-                >
-                  ← กลับ
-                </Button>
-              </div>
+  <Link
+    href={`${ROUTES.REPORT}?vocabularyId=${vocabulary.id}&term=${encodeURIComponent(termThai)}`}
+    className="block"
+  >
+    <Button fullWidth variant="danger" size="lg">
+      🚨 แจ้งปัญหาคำนี้
+    </Button>
+  </Link>
+
+  <Button
+    fullWidth
+    variant="secondary"
+    size="lg"
+    onClick={() => router.back()}
+  >
+    ⬅️ กลับไปหน้าก่อน
+  </Button>
+</div>
             </div>
           </div>
         </div>
