@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Deaf Assistant</h3>
+            <h3 className="text-xl font-bold mb-4">DDCMU</h3>
             <p className="text-gray-400 text-base leading-relaxed">
               ระบบช่วยสนับสนุนการเรียนการสอนสำหรับนักศึกษาผู้บกพร่องทางการได้ยิน
             </p>
@@ -43,7 +43,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* For Admins */}
+          {/* For Admins
           <div>
             <h4 className="text-lg font-semibold mb-4">สำหรับผู้ดูแลระบบ</h4>
             <ul className="space-y-2">
@@ -68,7 +68,7 @@ export default function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
           {/* Contact */}
           <div>
@@ -79,7 +79,7 @@ export default function Footer() {
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
-                <span className="text-base">support@deafassistant.cmu.ac.th</span>
+                <span className="text-base">natapon_p@cmu.ac.th</span>
               </li>
               <li className="flex items-start">
                 <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -94,7 +94,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-base">
-            © {currentYear} Deaf Assistant - CMU. All rights reserved.
+            © {currentYear} DDCMU. All rights reserved.
           </p>
           <p className="text-gray-500 text-sm mt-2">
             พัฒนาโดย T4: Inew - Software Engineering Project
