@@ -81,8 +81,8 @@ function VocabularyContent() {
     if (searchKeyword.trim()) {
        filtered = filtered.filter(v =>
         v.term_thai?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-        v.term_english?.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-        v.definition?.toLowerCase().includes(searchKeyword.toLowerCase())
+        v.term_english?.toLowerCase().includes(searchKeyword.toLowerCase()) 
+        // ลบการค้นหาจาก definition ออกเพื่อให้สอดคล้องกับ API
       );
     }
 

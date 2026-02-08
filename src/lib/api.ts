@@ -478,20 +478,25 @@ async getById(id: string) {
   return data;
 },
 
-  async search(keyword: string, courseId?: string) {
-    let query = supabase
-      .from('vocabularies')
-      .select('*, courses(name)')
-      .ilike('term_thai', `%${keyword}%`);
-      
-    if (courseId) {
-      query = query.eq('course_id', courseId);
-    }
+async search(keyword: string, course_id?: string) {
+  const condition = `term_thai.ilike.%${keyword}%,term_english.ilike.%${keyword}%`;
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
-  },
+  let query = supabase
+    .from('vocabularies')
+    .select('*, courses(name)')
+    .or(condition); 
+
+  if (course_id) {
+    query = query.eq('course_id', course_id);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error("Search Error:", error.message);
+    throw error;
+  }
+  return data;
+},
 
   async create(data: any) {
     const { data: result, error } = await supabase.from('vocabularies').insert(data).select().single();
