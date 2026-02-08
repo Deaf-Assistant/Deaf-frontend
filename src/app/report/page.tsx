@@ -8,6 +8,7 @@ import Button from "@/components/ui/Button";
 import { reportsApi, vocabularyApi, coursesApi, chaptersApi } from "@/lib/api";
 import { PROBLEM_TYPES, ROUTES } from "@/lib/constants";
 import { auth } from "@/lib/auth";
+import Link from "next/dist/client/link";
 
 function ReportContent() {
   const router = useRouter();
@@ -177,17 +178,33 @@ function ReportContent() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+
+
       <main className="flex-1 bg-gray-50 py-8">
         <div className="container mx-auto px-4 max-w-2xl">
           <div className="mb-8 text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
               รายงานปัญหา
             </h1>
+            
             <p className="text-lg text-gray-600">
               พบข้อผิดพลาดเกี่ยวกับคำศัพท์? แจ้งให้เราทราบได้ที่นี่
             </p>
+            <Link
+              href="/report/my"
+              className="
+                inline-flex items-center gap-2
+                text-blue-600
+                font-semibold
+                hover:text-blue-800
+                hover:underline
+                cursor-pointer
+                transition
+              "
+            >
+              📝 รายงานของฉัน
+            </Link>
           </div>
-
           <div className="bg-white rounded-2xl shadow-lg p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               {errors.form && (

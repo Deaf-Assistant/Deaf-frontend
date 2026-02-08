@@ -70,7 +70,12 @@ export default function AdminReportPage() {
                       {new Date(report.reported_at).toLocaleDateString('th-TH')}
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900">
-                      {report.vocabularies?.term_thai || '-'}
+                      <Link
+                        href={`/admin/vocabulary/${report.vocabularies?.id}/edit`}
+                        className="hover:underline cursor-pointer"
+                      >
+                        {report.vocabularies?.term_thai || '-'}
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {report.problem_type}

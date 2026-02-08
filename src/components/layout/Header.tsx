@@ -42,33 +42,34 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex items-center space-x-3 group">
+          <Link href={ROUTES.HOME} className="flex items-center space-x-3 group shrink-0 whitespace-nowrap">
             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-4xl">🦆</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white drop-shadow-md">Deaf Assistant</h1>
+              <h1 className="text-2xl font-bold text-white drop-shadow-md">DDCMU</h1>
               <p className="text-sm text-white/90 font-medium">ผู้ช่วยการเรียนรู้ 📚</p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-2">
+          <nav className="hidden md:flex flex-1 items-center justify-center space-x-2">
             <Link
               href={ROUTES.HOME}
-              className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-base font-bold transition-all duration-200 ${
+              className={`flex items-center whitespace-nowrap space-x-2 px-4 py-2.5 rounded-xl text-base font-bold transition-all duration-200 ${
                 isActive(ROUTES.HOME)
                   ? 'bg-white text-purple-600 shadow-lg scale-105'
                   : 'text-white hover:bg-white/20 hover:scale-105'
               }`}
-            >
+>
+
               <Home className="w-5 h-5" />
               <span>หน้าแรก</span>
             </Link>
 
             <Link
               href={ROUTES.COURSES}
-              className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-base font-bold transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
                 isActive(ROUTES.COURSES) || pathname.startsWith('/courses')
                   ? 'bg-white text-purple-600 shadow-lg scale-105'
                   : 'text-white hover:bg-white/20 hover:scale-105'
@@ -79,42 +80,59 @@ export default function Header() {
             </Link>
 
             <Link
-              href={ROUTES.VOCABULARY}
-              className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-base font-bold transition-all duration-200 ${
-                isActive(ROUTES.VOCABULARY) || pathname.startsWith('/vocabulary')
-                  ? 'bg-white text-purple-600 shadow-lg scale-105'
-                  : 'text-white hover:bg-white/20 hover:scale-105'
-              }`}
-            >
-              <Book className="w-5 h-5" />
-              <span>คำศัพท์</span>
-            </Link>
+  href={ROUTES.VOCABULARY}
+  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold whitespace-nowrap transition-all duration-200 ${
+    isActive(ROUTES.VOCABULARY) || pathname.startsWith('/vocabulary')
+      ? 'bg-white text-purple-600 shadow-lg scale-105'
+      : 'text-white hover:bg-white/20 hover:scale-105'
+  }`}
+>
+  <Book className="w-5 h-5 shrink-0" />
+  <span className="whitespace-nowrap">คำศัพท์</span>
+</Link>
+
+
+            {user && (
+  <Link
+    href={ROUTES.FAVORITES}
+    className={`flex items-center px-6 py-3 rounded-xl text-base font-bold whitespace-nowrap transition-all duration-200 ${
+      isActive(ROUTES.FAVORITES)
+        ? 'bg-white text-purple-600 shadow-lg scale-105'
+        : 'text-white hover:bg-white/20 hover:scale-105'
+    }`}
+  >
+    <span className="whitespace-nowrap">รายการโปรด</span>
+  </Link>
+)}
+
 
             {user && (
               <Link
                 href={ROUTES.REPORT}
-                className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-base font-bold transition-all duration-200 ${
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
                   isActive(ROUTES.REPORT)
                     ? 'bg-white text-purple-600 shadow-lg scale-105'
                     : 'text-white hover:bg-white/20 hover:scale-105'
                 }`}
               >
-                <AlertCircle className="w-5 h-5" />
-                <span>รายงานปัญหา</span>
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <span className="whitespace-nowrap">รายงานปัญหา</span>
+
               </Link>
             )}
 
             {user && auth.isAdmin() && (
               <Link
                 href={ROUTES.ADMIN_DASHBOARD}
-                className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-base font-bold transition-all duration-200 ${
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
                   pathname.startsWith('/admin')
                     ? 'bg-yellow-300 text-purple-700 shadow-lg scale-105'
                     : 'text-white hover:bg-white/20 hover:scale-105'
                 }`}
               >
-                <Settings className="w-5 h-5" />
-                <span>จัดการระบบ</span>
+                <Settings className="w-5 h-5 shrink-0" />
+                <span className="whitespace-nowrap">จัดการระบบ</span>
+
               </Link>
             )}
           </nav>
@@ -133,11 +151,20 @@ export default function Header() {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold shadow-lg transition-all duration-200 hover:scale-105"
+                  className="
+                    flex items-center gap-2
+                    px-6 py-3
+                    bg-red-500 hover:bg-red-600
+                    text-white rounded-xl font-bold
+                    whitespace-nowrap
+                    shadow-lg
+                    transition-all duration-200 hover:scale-105
+                   "
                 >
-                  <LogOut className="w-5 h-5" />
-                  <span>ออกจากระบบ</span>
-                </button>
+  <LogOut className="w-5 h-5 shrink-0" />
+  <span className="whitespace-nowrap">ออกจากระบบ</span>
+</button>
+
               </div>
             ) : (
               <div className="flex items-center space-x-2">
@@ -208,6 +235,18 @@ export default function Header() {
                 <Book className="w-5 h-5" />
                 <span>คำศัพท์</span>
               </Link>
+
+              {/* Favorites - Show for all logged-in users */}
+              {user && (
+                <Link
+                  href={ROUTES.FAVORITES}
+                  className={`px-4 py-3 rounded-lg text-base font-medium ${isActive(ROUTES.FAVORITES) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+                    }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  รายการโปรด
+                </Link>
+              )}
 
               {user && (
                 <Link

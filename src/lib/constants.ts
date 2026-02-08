@@ -8,6 +8,8 @@ export const ROUTES = {
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_COURSES: '/admin/courses',
   ADMIN_VOCABULARY: '/admin/vocabulary',
+  FAVORITES: '/favorite',
+  QUIZ: '/quiz',
 };
 
 export const VIDEO_SPEEDS = [0.5, 0.75, 1.0];
@@ -15,12 +17,12 @@ export const VIDEO_SPEEDS = [0.5, 0.75, 1.0];
 export const FILE_LIMITS = {
   IMAGE: {
     MAX_SIZE: 5 * 1024 * 1024, // 5MB
-    // ✅ เพิ่ม '.gif' และ 'image/gif' เข้าไปครับ
+    // เพิ่ม '.gif' และ 'image/gif' เข้าไปครับ
     ACCEPTED: ['.jpg', '.jpeg', '.png', '.webp', '.gif', 'image/jpeg', 'image/png', 'image/webp', 'image/gif']
   },
   VIDEO: {
     MAX_SIZE: 100 * 1024 * 1024, // 100MB
-    ACCEPTED: ['.mp4', '.mov', '.webm', 'video/mp4', 'video/quicktime', 'video/webm', 'image/gif']
+    ACCEPTED: ['.mp4', '.mov', '.webm', 'video/mp4', 'video/quicktime', 'video/webm', 'image/gif', '.mkv', 'video/mkv', 'video/x-matroska']
   }
 };
 
