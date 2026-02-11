@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
@@ -7,6 +7,9 @@ import CourseCard from '@/components/features/CourseCard';
 import SearchBox from '@/components/features/SearchBox';
 import Loading from '@/components/ui/Loading';
 import { coursesApi, vocabularyApi } from '@/lib/api';
+import { pinCoursesApi } from '@/lib/pin_api';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
@@ -14,6 +17,7 @@ export default function CoursesPage() {
   const [vocabularyCounts, setVocabularyCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [pinnedCourseIds, setPinnedCourseIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadCourses();
@@ -34,13 +38,23 @@ export default function CoursesPage() {
   const loadCourses = async () => {
     try {
       setLoading(true);
-      const data = await coursesApi.getAll();
-      setCourses(data);
-      setFilteredCourses(data);
+      const [coursesData, pinnedIds] = await Promise.all([
+        coursesApi.getAll(),
+        pinCoursesApi.getMyPinnedCourseIds().catch(() => []) // Handle error gracefully (e.g. not logged in)
+      ]);
+
+      const pinnedSet = new Set(pinnedIds);
+      setPinnedCourseIds(pinnedSet);
+
+      // Sort courses: pinned first, then by name (handled by API or default sort)
+      const sortedCourses = sortCourses(coursesData, pinnedSet);
+
+      setCourses(sortedCourses);
+      setFilteredCourses(sortedCourses);
 
       // Load vocabulary counts for each course
       const counts: Record<string, number> = {};
-      for (const course of data) {
+      for (const course of coursesData) {
         try {
           const vocabs = await vocabularyApi.getAll(course.id);
           counts[course.id] = vocabs.length;
@@ -51,15 +65,55 @@ export default function CoursesPage() {
       setVocabularyCounts(counts);
     } catch (error) {
       console.error('Failed to load courses:', error);
-      alert('ไม่สามารถโหลดรายวิชาได้');
+      // alert('ไม่สามารถโหลดรายวิชาได้'); // Commented out to prevent annoying alerts if just auth error
     } finally {
       setLoading(false);
     }
   };
 
+  const sortCourses = (coursesList: any[], pinnedSet: Set<string>) => {
+    return [...coursesList].sort((a, b) => {
+      const isAPinned = pinnedSet.has(a.id);
+      const isBPinned = pinnedSet.has(b.id);
+      if (isAPinned && !isBPinned) return -1;
+      if (!isAPinned && isBPinned) return 1;
+      return 0; // Keep original order (presumably by name)
+    });
+  };
+
   const handleSearch = (keyword: string) => {
     setSearchKeyword(keyword);
   };
+
+  const handleTogglePin = async (courseId: string) => {
+    try {
+      const isPinned = pinnedCourseIds.has(courseId);
+      let success = false;
+
+      if (isPinned) {
+        success = await pinCoursesApi.unpin(courseId);
+        if (success) {
+          const newSet = new Set(pinnedCourseIds);
+          newSet.delete(courseId);
+          setPinnedCourseIds(newSet);
+          // Re-sort
+          setCourses(prev => sortCourses(prev, newSet));
+        }
+      } else {
+        await pinCoursesApi.pin(courseId); // pin returns data, but we just need success
+        const newSet = new Set(pinnedCourseIds);
+        newSet.add(courseId);
+        setPinnedCourseIds(newSet);
+        // Re-sort
+        setCourses(prev => sortCourses(prev, newSet));
+      }
+
+    } catch (error: any) {
+      console.error('Failed to toggle pin:', error);
+      toast.error(error.message || 'เกิดข้อผิดพลาดในการปักหมุด');
+    }
+  };
+
 
   if (loading) {
     return <Loading />;
@@ -68,6 +122,7 @@ export default function CoursesPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <ToastContainer position="top-right" autoClose={2000} />
 
       <main className="flex-1 bg-gray-50 py-8">
         <div className="container mx-auto px-4">
@@ -100,6 +155,8 @@ export default function CoursesPage() {
                   key={course.id}
                   course={course}
                   vocabularyCount={vocabularyCounts[course.id]}
+                  isPinned={pinnedCourseIds.has(course.id)}
+                  onTogglePin={() => handleTogglePin(course.id)}
                 />
               ))}
             </div>

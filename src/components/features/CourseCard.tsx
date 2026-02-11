@@ -1,22 +1,65 @@
 'use client'
 
-import { Course } from '@/types';
+import { useState, useEffect } from 'react';
+import { Course, User } from '@/types';
+import { auth } from '@/lib/auth';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface CourseCardProps {
   course: Course;
   vocabularyCount?: number;
+  isPinned?: boolean;
+  onTogglePin?: () => void;
 }
 
-export default function CourseCard({ course, vocabularyCount }: CourseCardProps) {
+export default function CourseCard({ course, vocabularyCount, isPinned, onTogglePin }: CourseCardProps) {
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setUser(auth.getUser());
+
+    // Listen for auth changes
+    const handleAuthChange = () => {
+      setUser(auth.getUser());
+    };
+
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
+  }, []);
 
   return (
     <div
       onClick={() => router.push(`/courses/${course.id}`)}
-      className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden group"
+      className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden group relative"
     >
+      {/* Pin Button */}
+      {user && onTogglePin && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePin();
+          }}
+          className={`absolute top-2 left-2 z-10 p-4 rounded-full transition-colors duration-200 shadow-md ${isPinned
+            ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
+            : 'bg-white/80 text-gray-400 hover:bg-white hover:text-yellow-500'
+            }`}
+          title={isPinned ? "เลิกปักหมุด" : "ปักหมุดรายวิชา"}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+          </svg>
+        </button>
+      )}
+
       {/* Course image */}
       <div className="relative h-40 bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 overflow-hidden">
         {course.image_url ? (
@@ -33,7 +76,7 @@ export default function CourseCard({ course, vocabularyCount }: CourseCardProps)
             </svg>
           </div>
         )}
-        
+
         {/* Course code badge */}
         <div className="absolute top-3 right-3 bg-black bg-opacity-70 text-white px-3 py-1 rounded-lg text-sm font-mono">
           {course.code}
