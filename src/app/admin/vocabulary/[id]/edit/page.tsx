@@ -45,8 +45,11 @@ export default function EditVocabularyPage() {
         // 🔥 จุดสำคัญ: แปลง chapterId -> chapter_id
         chapter_id: formData.chapterId,
 
-        image_url: formData.imageUrl,
-        video_url: formData.videoUrl
+        image_url: formData.imageUrl || null,
+        image_url2: formData.imageUrl2 || null,
+        image_url3: formData.imageUrl3 || null,
+        video_url: formData.videoUrl || null,
+        fingerspelling_video_url: formData.fingerspellingVideoUrl || null,
       };
 
       await vocabularyApi.update(id as string, payload);

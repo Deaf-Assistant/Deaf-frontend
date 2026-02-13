@@ -21,7 +21,8 @@ export default function AddCoursePage() {
     code: "",
     name: "",
     description: "",
-    image_url: ""
+    image_url: "",
+    visibility: "everyone"
   });
 
   const handleImageSelect = (file: File) => {
@@ -94,6 +95,19 @@ export default function AddCoursePage() {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="รายละเอียดวิชาสังเขป..."
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">การมองเห็น</label>
+            <select
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+              value={formData.visibility}
+              onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+            >
+              <option value="everyone">สาธารณะ (เห็นได้ทุกคน)</option>
+              <option value="login">เฉพาะสมาชิก (ต้องเข้าสู่ระบบ)</option>
+              <option value="admin">เฉพาะผู้ดูแล (admin เท่านั้น)</option>
+            </select>
           </div>
 
           {/* Image Upload */}

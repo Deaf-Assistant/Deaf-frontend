@@ -11,12 +11,13 @@ export interface User {
 
 export interface Course {
   id: string;
-  name: string;
   code: string;
+  name: string;
   description?: string;
   image_url?: string; // แก้เป็น snake_case ตาม DB
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
+  visibility?: 'everyone' | 'login' | 'admin';
 }
 
 export interface Vocabulary {

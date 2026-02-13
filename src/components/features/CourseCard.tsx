@@ -7,16 +7,34 @@ import { useRouter } from 'next/navigation';
 interface CourseCardProps {
   course: Course;
   vocabularyCount?: number;
+  onToggleVisibility?: (course: Course) => void;
 }
 
-export default function CourseCard({ course, vocabularyCount }: CourseCardProps) {
+export default function CourseCard({ course, vocabularyCount, onToggleVisibility }: CourseCardProps) {
   const router = useRouter();
 
   return (
     <div
       onClick={() => router.push(`/courses/${course.id}`)}
-      className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden group"
+      className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden group relative"
     >
+      {/* Admin Visibility Toggle */}
+      {onToggleVisibility && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleVisibility(course);
+          }}
+          className={`absolute top-3 left-3 z-10 px-2 py-1 rounded text-xs font-bold shadow-md transition-colors ${(course.visibility || 'everyone') === 'everyone' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+              course.visibility === 'login' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
+                'bg-red-100 text-red-800 hover:bg-red-200'
+            }`}
+        >
+          {(course.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
+            course.visibility === 'login' ? 'สมาชิก' : 'ผู้ดูแล'}
+        </button>
+      )}
+
       {/* Course image */}
       <div className="relative h-40 bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 overflow-hidden">
         {course.image_url ? (
@@ -33,7 +51,7 @@ export default function CourseCard({ course, vocabularyCount }: CourseCardProps)
             </svg>
           </div>
         )}
-        
+
         {/* Course code badge */}
         <div className="absolute top-3 right-3 bg-black bg-opacity-70 text-white px-3 py-1 rounded-lg text-sm font-mono">
           {course.code}
