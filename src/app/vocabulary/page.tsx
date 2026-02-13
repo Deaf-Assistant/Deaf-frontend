@@ -139,8 +139,13 @@ function VocabularyContent() {
       <main className="flex-1 bg-gray-50 py-8">
         <div className="container mx-auto px-4">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">คำศัพท์ทั้งหมด</h1>
-            <p className="text-lg text-gray-600">ค้นหาและเรียนรู้คำศัพท์เฉพาะทางจากทุกรายวิชา</p>
+            <h1 className="text-5xl font-extrabold text-gray-600 mb-2">
+            📚 คำศัพท์ทั้งหมด
+            </h1>
+            <p className="text-xl text-gray-600">
+              เลือกคำศัพท์ แล้วเรียนรู้ไปพร้อมกัน 🎉
+            </p>
+
           </div>
 
           <div className="mb-8 max-w-2xl">
@@ -154,31 +159,36 @@ function VocabularyContent() {
           {courses.length > 0 && (
             <div className="mb-6">
               <div className="flex items-center gap-3 overflow-x-auto pb-2">
-                <span className="text-base font-medium text-gray-700 whitespace-nowrap">
-                  รายวิชา:
-                </span>
-                <button
-                  onClick={() => setSelectedCourse('all')}
-                  className={`px-5 py-2 rounded-full text-base font-medium transition whitespace-nowrap ${selectedCourse === 'all'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100'
-                    }`}
-                >
-                  ทั้งหมด
-                </button>
-                {courses.map((course) => (
-                  <button
-                    key={course.id}
-                    onClick={() => setSelectedCourse(course.id)}
-                    className={`px-5 py-2 rounded-full text-base font-medium transition whitespace-nowrap ${selectedCourse === course.id
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100'
-                      }`}
-                  >
-                    {course.code}
-                  </button>
-                ))}
-              </div>
+  <span className="text-base font-bold text-gray-700 whitespace-nowrap">
+    🎓 เลือกรายวิชา:
+  </span>
+
+  <button
+    onClick={() => setSelectedCourse('all')}
+    className={`px-6 py-2 rounded-full text-base font-bold transition whitespace-nowrap ${
+      selectedCourse === 'all'
+        ? 'bg-blue-500 text-white shadow-lg scale-105'
+        : 'bg-white text-gray-700 hover:bg-blue-50 border'
+    }`}
+  >
+    🌈 ทั้งหมด
+  </button>
+
+  {courses.map((course) => (
+    <button
+      key={course.id}
+      onClick={() => setSelectedCourse(course.id)}
+      className={`px-6 py-2 rounded-full text-base font-bold transition whitespace-nowrap ${
+        selectedCourse === course.id
+          ? 'bg-green-500 text-white shadow-lg scale-105'
+          : 'bg-white text-gray-700 hover:bg-green-50 border'
+      }`}
+    >
+      📘 {course.code}
+    </button>
+  ))}
+</div>
+
             </div>
           )}
 

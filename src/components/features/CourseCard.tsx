@@ -1,6 +1,8 @@
 'use client'
 
-import { Course } from '@/types';
+import { useState, useEffect } from 'react';
+import { Course, User } from '@/types';
+import { auth } from '@/lib/auth';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -11,7 +13,27 @@ interface CourseCardProps {
 }
 
 export default function CourseCard({ course, vocabularyCount, onToggleVisibility }: CourseCardProps) {
+  isPinned?: boolean;
+  onTogglePin?: () => void;
+}
+
+export default function CourseCard({ course, vocabularyCount, isPinned, onTogglePin }: CourseCardProps) {
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setUser(auth.getUser());
+
+    // Listen for auth changes
+    const handleAuthChange = () => {
+      setUser(auth.getUser());
+    };
+
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => {
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
+  }, []);
 
   return (
     <div
@@ -32,6 +54,28 @@ export default function CourseCard({ course, vocabularyCount, onToggleVisibility
         >
           {(course.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
             course.visibility === 'login' ? 'สมาชิก' : 'ผู้ดูแล'}
+          
+      {/* Pin Button */}
+      {user && onTogglePin && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePin();
+          }}
+          className={`absolute top-2 left-2 z-10 p-4 rounded-full transition-colors duration-200 shadow-md ${isPinned
+            ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
+            : 'bg-white/80 text-gray-400 hover:bg-white hover:text-yellow-500'
+            }`}
+          title={isPinned ? "เลิกปักหมุด" : "ปักหมุดรายวิชา"}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+          </svg>
         </button>
       )}
 

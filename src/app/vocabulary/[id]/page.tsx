@@ -185,10 +185,11 @@ export default function VocabularyDetailPage() {
                 {videoUrl && (
                   <button
                     onClick={() => setActiveVideo('main')}
-                    className={`w-full px-4 py-3 rounded-lg font-medium transition ${activeVideo === 'main'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                      }`}
+                    className={`w-full px-4 py-3 rounded-lg font-medium transition ${
+                      activeVideo === 'main'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
                   >
                     📹 วิดีโอภาษามือ
                   </button>
@@ -196,10 +197,11 @@ export default function VocabularyDetailPage() {
                 {fingerspellingVideoUrl && (
                   <button
                     onClick={() => setActiveVideo('fingerspelling')}
-                    className={`w-full px-4 py-3 rounded-lg font-medium transition ${activeVideo === 'fingerspelling'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                      }`}
+                    className={`w-full px-4 py-3 rounded-lg font-medium transition ${
+                      activeVideo === 'fingerspelling'
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
                   >
                     ✋ สะกดคำภาษามือ
                   </button>
@@ -211,6 +213,7 @@ export default function VocabularyDetailPage() {
             <div className="space-y-6">
 
               {/* Title + Favorite Button */}
+              
               <div className="bg-white rounded-2xl shadow-lg p-6 border">
                 <div className="flex items-start justify-between mb-2">
                   <div>
@@ -219,6 +222,7 @@ export default function VocabularyDetailPage() {
                   </div>
 
                   {/* ⭐ Favorite Button */}
+                  {user && (
                   <button
                     onClick={handleToggleFavorite}
                     disabled={favoriteLoading}
@@ -238,7 +242,8 @@ export default function VocabularyDetailPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                       </svg>
                     )}
-                  </button>
+                  </button>   
+                  )}
                 </div>
 
 
@@ -312,22 +317,7 @@ export default function VocabularyDetailPage() {
 
               {/* Action Buttons */}
               <div className="space-y-4">
-                {/* Mobile Favorite Button */}
-                <button
-                  onClick={handleToggleFavorite}
-                  disabled={favoriteLoading}
-                  className={`lg:hidden w-full px-4 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2 ${isFavorited
-                    ? 'bg-yellow-500 text-white hover:bg-yellow-600'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                    }`}
-                >
-                  <svg className="w-5 h-5" fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                  </svg>
-                  {isFavorited ? 'อยู่ในรายการโปรด' : 'เพิ่มในรายการโปรด'}
-                </button>
-
-                <Link
+                <Link 
                   href={`${ROUTES.REPORT}?vocabularyId=${vocabulary.id}&term=${encodeURIComponent(termThai)}`}
                   className="block"
                 >
@@ -340,7 +330,7 @@ export default function VocabularyDetailPage() {
                     </span>
                   </Button>
                 </Link>
-
+                
                 <Button
                   fullWidth
                   variant="secondary"

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
@@ -7,10 +7,10 @@ import CourseCard from '@/components/features/CourseCard';
 import SearchBox from '@/components/features/SearchBox';
 import Loading from '@/components/ui/Loading';
 import { coursesApi, vocabularyApi, authApi } from '@/lib/api';
-
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from 'next/navigation';
+import { pinCoursesApi } from '@/lib/pin_api';
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -21,6 +21,7 @@ export default function CoursesPage() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'default' | 'student' | 'guest'>('default');
+  const [pinnedCourseIds, setPinnedCourseIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadCourses();
@@ -79,6 +80,19 @@ export default function CoursesPage() {
 
       setCurrentUser(user);
       setCourses(allCourses); // Store ALL courses originally
+      const [coursesData, pinnedIds] = await Promise.all([
+        coursesApi.getAll(),
+        pinCoursesApi.getMyPinnedCourseIds().catch(() => []) // Handle error gracefully (e.g. not logged in)
+      ]);
+
+      const pinnedSet = new Set(pinnedIds);
+      setPinnedCourseIds(pinnedSet);
+
+      // Sort courses: pinned first, then by name (handled by API or default sort)
+      const sortedCourses = sortCourses(coursesData, pinnedSet);
+
+      setCourses(sortedCourses);
+      setFilteredCourses(sortedCourses);
 
       // Load counts
       const counts: Record<string, number> = {};
@@ -95,10 +109,20 @@ export default function CoursesPage() {
 
     } catch (error) {
       console.error('Failed to load courses:', error);
-      alert('ไม่สามารถโหลดรายวิชาได้');
+      // alert('ไม่สามารถโหลดรายวิชาได้'); // Commented out to prevent annoying alerts if just auth error
     } finally {
       setLoading(false);
     }
+  };
+
+  const sortCourses = (coursesList: any[], pinnedSet: Set<string>) => {
+    return [...coursesList].sort((a, b) => {
+      const isAPinned = pinnedSet.has(a.id);
+      const isBPinned = pinnedSet.has(b.id);
+      if (isAPinned && !isBPinned) return -1;
+      if (!isAPinned && isBPinned) return 1;
+      return 0; // Keep original order (presumably by name)
+    });
   };
 
   const handleSearch = (keyword: string) => {
@@ -127,6 +151,36 @@ export default function CoursesPage() {
       toast.error('เกิดข้อผิดพลาดในการเปลี่ยนสถานะ');
     }
   };
+
+  const handleTogglePin = async (courseId: string) => {
+    try {
+      const isPinned = pinnedCourseIds.has(courseId);
+      let success = false;
+
+      if (isPinned) {
+        success = await pinCoursesApi.unpin(courseId);
+        if (success) {
+          const newSet = new Set(pinnedCourseIds);
+          newSet.delete(courseId);
+          setPinnedCourseIds(newSet);
+          // Re-sort
+          setCourses(prev => sortCourses(prev, newSet));
+        }
+      } else {
+        await pinCoursesApi.pin(courseId); // pin returns data, but we just need success
+        const newSet = new Set(pinnedCourseIds);
+        newSet.add(courseId);
+        setPinnedCourseIds(newSet);
+        // Re-sort
+        setCourses(prev => sortCourses(prev, newSet));
+      }
+
+    } catch (error: any) {
+      console.error('Failed to toggle pin:', error);
+      toast.error(error.message || 'เกิดข้อผิดพลาดในการปักหมุด');
+    }
+  };
+
 
   if (loading) {
     return <Loading />;
@@ -210,6 +264,8 @@ export default function CoursesPage() {
                   vocabularyCount={vocabularyCounts[course.id]}
                   // Allow toggling only in default view and if user is authorized
                   onToggleVisibility={(viewMode === 'default' && isPrivileged) ? handleToggleVisibility : undefined}
+                  isPinned={pinnedCourseIds.has(course.id)}
+                  onTogglePin={() => handleTogglePin(course.id)}
                 />
               ))}
             </div>
