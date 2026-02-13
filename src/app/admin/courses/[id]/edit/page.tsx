@@ -27,6 +27,7 @@ export default function EditCoursePage() {
     name: "",
     description: "",
     image_url: "",
+    visibility: "everyone",
   });
 
   const [chapters, setChapters] = useState<any[]>([]);
@@ -47,6 +48,7 @@ export default function EditCoursePage() {
         name: data.name || "",
         description: data.description || "",
         image_url: data.image_url || "",
+        visibility: data.visibility || "everyone",
       });
 
       // Set image preview if exists
@@ -223,6 +225,19 @@ export default function EditCoursePage() {
                   setFormData({ ...formData, description: e.target.value })
                 }
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">การมองเห็น</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                value={formData.visibility}
+                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+              >
+                <option value="everyone">สาธารณะ (เห็นได้ทุกคน)</option>
+                <option value="login">เฉพาะสมาชิก (ต้องเข้าสู่ระบบ)</option>
+                <option value="admin">เฉพาะผู้ดูแล (admin เท่านั้น)</option>
+              </select>
             </div>
 
             {/* Image Upload */}

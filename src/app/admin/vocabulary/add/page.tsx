@@ -41,6 +41,8 @@ export default function AddVocabularyPage() {
         course_id: formData.courseId,
         chapter_id: formData.chapterId,
         image_url: formData.imageUrl || null,
+        image_url2: formData.imageUrl2 || null,
+        image_url3: formData.imageUrl3 || null,
         video_url: formData.videoUrl || null,
         fingerspelling_video_url: formData.fingerspellingVideoUrl || null, // ⭐ เพิ่ม
       };

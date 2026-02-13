@@ -51,6 +51,9 @@ export default function VocabularyForm({
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFile2, setImageFile2] = useState<File | null>(null);
+  const [imageFile3, setImageFile3] = useState<File | null>(null);
+
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [fingerspellingVideoFile, setFingerspellingVideoFile] =
     useState<File | null>(null); // ⭐ เพิ่ม
@@ -58,13 +61,19 @@ export default function VocabularyForm({
   const [imagePreview, setImagePreview] = useState(
     vocabulary?.image_url || vocabulary?.imageUrl || "",
   );
+  const [imagePreview2, setImagePreview2] = useState(
+    vocabulary?.image_url2 || vocabulary?.imageUrl2 || "",
+  );
+  const [imagePreview3, setImagePreview3] = useState(
+    vocabulary?.image_url3 || vocabulary?.imageUrl3 || "",
+  );
   const [videoPreview, setVideoPreview] = useState(
     vocabulary?.video_url || vocabulary?.videoUrl || "",
   );
   const [fingerspellingVideoPreview, setFingerspellingVideoPreview] = useState(
     vocabulary?.fingerspelling_video_url ||
-      vocabulary?.fingerspellingVideoUrl ||
-      "",
+    vocabulary?.fingerspellingVideoUrl ||
+    "",
   );
 
   // Sync กับ vocabulary prop
@@ -78,6 +87,12 @@ export default function VocabularyForm({
         termEnglish: vocabulary?.term_english || vocabulary?.termEnglish || "",
         definition: vocabulary?.definition || vocabulary?.description || "",
       });
+
+      setImagePreview(vocabulary?.image_url || vocabulary?.imageUrl || "");
+      setImagePreview2(vocabulary?.image_url2 || vocabulary?.imageUrl2 || "");
+      setImagePreview3(vocabulary?.image_url3 || vocabulary?.imageUrl3 || "");
+      setVideoPreview(vocabulary?.video_url || vocabulary?.videoUrl || "");
+      setFingerspellingVideoPreview(vocabulary?.fingerspelling_video_url || vocabulary?.fingerspellingVideoUrl || "");
     }
   }, [vocabulary]);
 
@@ -143,13 +158,27 @@ export default function VocabularyForm({
 
     try {
       let imageUrl = imagePreview;
+      let imageUrl2 = imagePreview2;
+      let imageUrl3 = imagePreview3;
       let videoUrl = videoPreview;
       let fingerspellingVideoUrl = fingerspellingVideoPreview; // ⭐ เพิ่ม
 
-      // Upload image
+      // Upload image 1
       if (imageFile) {
         const uploadResult = await uploadApi.uploadFile(imageFile, "image");
         imageUrl = uploadResult.url;
+      }
+
+      // Upload image 2
+      if (imageFile2) {
+        const uploadResult = await uploadApi.uploadFile(imageFile2, "image");
+        imageUrl2 = uploadResult.url;
+      }
+
+      // Upload image 3
+      if (imageFile3) {
+        const uploadResult = await uploadApi.uploadFile(imageFile3, "image");
+        imageUrl3 = uploadResult.url;
       }
 
       // Upload video ภาษามือ
@@ -170,6 +199,8 @@ export default function VocabularyForm({
       const submitData = {
         ...formData,
         imageUrl,
+        imageUrl2,
+        imageUrl3,
         videoUrl,
         fingerspellingVideoUrl,
         categoryIds: selectedCategories,
@@ -284,6 +315,26 @@ export default function VocabularyForm({
                     setImageFile(file);
                     setImagePreview(v.image_url);
                   }
+                  if (v.image_url_2) {
+                    const file = await urlToFile(v.image_url2, "image2.jpg");
+                    setImageFile2(file);
+                    setImagePreview2(v.image_url_2);
+                  }
+                  if (v.image_url_3) {
+                    const file = await urlToFile(v.image_url3, "image3.jpg");
+                    setImageFile3(file);
+                    setImagePreview3(v.image_url_3);
+                  }
+                  if (v.image_url_2) {
+                    const file = await urlToFile(v.image_url2, "image2.jpg");
+                    setImageFile2(file);
+                    setImagePreview2(v.image_url_2);
+                  }
+                  if (v.image_url_3) {
+                    const file = await urlToFile(v.image_url3, "image3.jpg");
+                    setImageFile3(file);
+                    setImagePreview3(v.image_url_3);
+                  }
 
                   // 4️⃣ วิดีโอภาษามือ
                   if (v.video_url) {
@@ -372,11 +423,10 @@ export default function VocabularyForm({
                       : [...prev, cat.id],
                   );
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  selectedCategories.includes(cat.id)
-                    ? "ring-2 ring-offset-1"
-                    : "opacity-60 hover:opacity-100"
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategories.includes(cat.id)
+                  ? "ring-2 ring-offset-1"
+                  : "opacity-60 hover:opacity-100"
+                  }`}
                 style={{
                   backgroundColor: `${cat.color}20`,
                   color: cat.color,
@@ -420,14 +470,34 @@ export default function VocabularyForm({
         )}
       </div>
 
-      {/* รูปภาพประกอบ */}
+      {/* รูปภาพประกอบ 1 */}
       <FileUpload
         type="image"
         accept={FILE_LIMITS.IMAGE.ACCEPTED.join(",")}
         maxSize={FILE_LIMITS.IMAGE.MAX_SIZE}
-        label="รูปภาพประกอบ"
+        label="รูปภาพประกอบ 1 (หลัก)"
         preview={imagePreview}
         onFileSelect={(file) => setImageFile(file)}
+      />
+
+      {/* รูปภาพประกอบ 2 */}
+      <FileUpload
+        type="image"
+        accept={FILE_LIMITS.IMAGE.ACCEPTED.join(",")}
+        maxSize={FILE_LIMITS.IMAGE.MAX_SIZE}
+        label="รูปภาพประกอบ 2 (ถ้ามี)"
+        preview={imagePreview2}
+        onFileSelect={(file) => setImageFile2(file)}
+      />
+
+      {/* รูปภาพประกอบ 3 */}
+      <FileUpload
+        type="image"
+        accept={FILE_LIMITS.IMAGE.ACCEPTED.join(",")}
+        maxSize={FILE_LIMITS.IMAGE.MAX_SIZE}
+        label="รูปภาพประกอบ 3 (ถ้ามี)"
+        preview={imagePreview3}
+        onFileSelect={(file) => setImageFile3(file)}
       />
 
       {/* วิดีโอภาษามือ */}

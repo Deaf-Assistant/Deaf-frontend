@@ -132,6 +132,8 @@ export default function VocabularyDetailPage() {
   const videoUrl = vocabulary.video_url;
   const fingerspellingVideoUrl = vocabulary.fingerspelling_video_url;
   const imageUrl = vocabulary.image_url;
+  const imageUrl2 = vocabulary.image_url2;
+  const imageUrl3 = vocabulary.image_url3;
   const courseName = vocabulary.courses?.name;
   const courseCode = vocabulary.courses?.code;
   const chapterName = vocabulary.chapters?.name;
@@ -251,12 +253,18 @@ export default function VocabularyDetailPage() {
                 </div>
               </div>
 
-              {/* Image */}
-              {imageUrl && (
+              {/* Image Gallery */}
+              {[imageUrl, imageUrl2, imageUrl3].filter(Boolean).length > 0 && (
                 <div className="bg-white rounded-2xl shadow-lg p-6 border">
                   <h3 className="text-lg font-semibold mb-4">รูปภาพประกอบ</h3>
-                  <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
-                    <Image src={imageUrl} alt={termThai} fill className="object-contain" />
+                  <div className="space-y-4">
+                    {[imageUrl, imageUrl2, imageUrl3]
+                      .filter(Boolean)
+                      .map((img, index) => (
+                        <div key={index} className="relative w-full aspect-video rounded-lg overflow-hidden bg-gray-100">
+                          <Image src={img} alt={`${termThai} ${index + 1}`} fill className="object-contain" />
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}

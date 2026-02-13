@@ -108,7 +108,7 @@ export default function AdminCoursesPage() {
 
       <div className="space-y-6">
         {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">จัดการรายวิชา</h1>
             <p className="text-gray-600 mt-1">เพิ่ม/แก้ไข/ลบรายวิชาในระบบ</p>
@@ -125,7 +125,7 @@ export default function AdminCoursesPage() {
         </div>
 
         {/* Search */}
-      <Card className="p-4">
+        <Card className="p-4">
           <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
             <div className="md:w-96">
               <Input
@@ -186,6 +186,33 @@ export default function AdminCoursesPage() {
                         {new Date(c.created_at).toLocaleDateString("th-TH")}
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const currentVisibility = c.visibility || 'everyone';
+                            let nextVisibility = 'everyone';
+                            if (currentVisibility === 'everyone') nextVisibility = 'login';
+                            else if (currentVisibility === 'login') nextVisibility = 'admin';
+
+                            coursesApi.update(c.id, { visibility: nextVisibility }).then(() => {
+                              setCourses(courses.map(course =>
+                                course.id === c.id ? { ...course, visibility: nextVisibility } : course
+                              ));
+                              toast.success(`เปลี่ยนการมองเห็นเป็น: ${nextVisibility === 'everyone' ? 'สาธารณะ' :
+                                  nextVisibility === 'login' ? 'เฉพาะสมาชิก' : 'ผู้ดูแลเท่านั้น'
+                                }`);
+                            });
+                          }}
+                          className={`${(c.visibility || 'everyone') === 'everyone' ? '!bg-green-100 !text-green-800 hover:!bg-green-200' :
+                              c.visibility === 'login' ? '!bg-yellow-100 !text-yellow-800 hover:!bg-yellow-200' :
+                                '!bg-red-100 !text-red-800 hover:!bg-red-200'
+                            }`}
+                        >
+                          {(c.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
+                            c.visibility === 'login' ? 'เฉพาะสมาชิก' : 'ผู้ดูแล'}
+                        </Button>
                         <Link href={`/admin/courses/${c.id}/edit`} onClick={(e) => e.stopPropagation()}>
                           <Button variant="secondary" size="sm">
                             แก้ไข

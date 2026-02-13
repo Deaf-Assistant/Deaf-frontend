@@ -9,6 +9,10 @@ import { useRouter } from 'next/navigation';
 interface CourseCardProps {
   course: Course;
   vocabularyCount?: number;
+  onToggleVisibility?: (course: Course) => void;
+}
+
+export default function CourseCard({ course, vocabularyCount, onToggleVisibility }: CourseCardProps) {
   isPinned?: boolean;
   onTogglePin?: () => void;
 }
@@ -36,6 +40,21 @@ export default function CourseCard({ course, vocabularyCount, isPinned, onToggle
       onClick={() => router.push(`/courses/${course.id}`)}
       className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden group relative"
     >
+      {/* Admin Visibility Toggle */}
+      {onToggleVisibility && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleVisibility(course);
+          }}
+          className={`absolute top-3 left-3 z-10 px-2 py-1 rounded text-xs font-bold shadow-md transition-colors ${(course.visibility || 'everyone') === 'everyone' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+              course.visibility === 'login' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
+                'bg-red-100 text-red-800 hover:bg-red-200'
+            }`}
+        >
+          {(course.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
+            course.visibility === 'login' ? 'สมาชิก' : 'ผู้ดูแล'}
+          
       {/* Pin Button */}
       {user && onTogglePin && (
         <button
