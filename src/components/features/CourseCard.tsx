@@ -10,14 +10,11 @@ interface CourseCardProps {
   course: Course;
   vocabularyCount?: number;
   onToggleVisibility?: (course: Course) => void;
-}
-
-export default function CourseCard({ course, vocabularyCount, onToggleVisibility }: CourseCardProps) {
   isPinned?: boolean;
   onTogglePin?: () => void;
 }
 
-export default function CourseCard({ course, vocabularyCount, isPinned, onTogglePin }: CourseCardProps) {
+export default function CourseCard({ course, vocabularyCount, onToggleVisibility, isPinned, onTogglePin }: CourseCardProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
@@ -40,31 +37,16 @@ export default function CourseCard({ course, vocabularyCount, isPinned, onToggle
       onClick={() => router.push(`/courses/${course.id}`)}
       className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden group relative"
     >
-      {/* Admin Visibility Toggle */}
-      {onToggleVisibility && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleVisibility(course);
-          }}
-          className={`absolute top-3 left-3 z-10 px-2 py-1 rounded text-xs font-bold shadow-md transition-colors ${(course.visibility || 'everyone') === 'everyone' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-              course.visibility === 'login' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
-                'bg-red-100 text-red-800 hover:bg-red-200'
-            }`}
-        >
-          {(course.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
-            course.visibility === 'login' ? 'สมาชิก' : 'ผู้ดูแล'}
-          
-      {/* Pin Button */}
+      {/* Pin Button - Top Left */}
       {user && onTogglePin && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onTogglePin();
           }}
-          className={`absolute top-2 left-2 z-10 p-4 rounded-full transition-colors duration-200 shadow-md ${isPinned
-            ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
-            : 'bg-white/80 text-gray-400 hover:bg-white hover:text-yellow-500'
+          className={`absolute top-3 left-3 z-20 p-1.5 rounded-full transition-colors duration-200 shadow-sm border ${isPinned
+            ? 'bg-yellow-100 text-yellow-600 border-yellow-200 hover:bg-yellow-200'
+            : 'bg-white/90 text-gray-400 border-transparent hover:bg-white hover:text-yellow-500'
             }`}
           title={isPinned ? "เลิกปักหมุด" : "ปักหมุดรายวิชา"}
         >
@@ -76,6 +58,23 @@ export default function CourseCard({ course, vocabularyCount, isPinned, onToggle
           >
             <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
           </svg>
+        </button>
+      )}
+
+      {/* Admin Visibility Toggle - Top Right (Below Badge) */}
+      {onToggleVisibility && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleVisibility(course);
+          }}
+          className={`absolute top-12 right-3 z-20 px-2 py-1 rounded text-xs font-bold shadow-md transition-colors ${(course.visibility || 'everyone') === 'everyone' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+              course.visibility === 'login' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' :
+                'bg-red-100 text-red-800 hover:bg-red-200'
+            }`}
+        >
+          {(course.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
+            course.visibility === 'login' ? 'สมาชิก' : 'ผู้ดูแล'}
         </button>
       )}
 
@@ -97,7 +96,7 @@ export default function CourseCard({ course, vocabularyCount, isPinned, onToggle
         )}
 
         {/* Course code badge */}
-        <div className="absolute top-3 right-3 bg-black bg-opacity-70 text-white px-3 py-1 rounded-lg text-sm font-mono">
+        <div className="absolute top-3 right-3 bg-black bg-opacity-70 text-white px-3 py-1 rounded-lg text-sm font-mono z-10">
           {course.code}
         </div>
       </div>
