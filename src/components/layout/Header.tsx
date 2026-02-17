@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, BookOpen, AlertCircle, Settings, LogOut, LogIn, UserPlus, Menu, X, Heart } from 'lucide-react';
+import { Home, BookOpen, Book, AlertCircle, Settings, LogOut, LogIn, UserPlus, Menu, X, Heart } from 'lucide-react';
 import { auth } from '@/lib/auth';
 import { ROUTES } from '@/lib/constants';
 import Button from '@/components/ui/Button';
@@ -20,12 +20,12 @@ export default function Header() {
 
   useEffect(() => {
     loadUser();
-    window.addEventListener('auth-change', loadUser);
-    window.addEventListener('storage', loadUser);
+    window.addEventListener("auth-change", loadUser);
+    window.addEventListener("storage", loadUser);
 
     return () => {
-      window.removeEventListener('auth-change', loadUser);
-      window.removeEventListener('storage', loadUser);
+      window.removeEventListener("auth-change", loadUser);
+      window.removeEventListener("storage", loadUser);
     };
   }, [pathname]);
 
@@ -42,7 +42,10 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex items-center space-x-3 group shrink-0 whitespace-nowrap">
+          <Link
+            href={ROUTES.HOME}
+            className="flex items-center space-x-3 group shrink-0 whitespace-nowrap"
+          >
             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-4xl">🦆</span>
             </div>
@@ -130,6 +133,7 @@ export default function Header() {
                 <Settings className="w-5 h-5 shrink-0" />
                 <span className="whitespace-nowrap">จัดการระบบ</span>
               </Link>
+              
             )}
           </nav>
 
@@ -184,7 +188,11 @@ export default function Header() {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 rounded-xl text-purple-700 hover:bg-white/30 transition-all"
           >
-            {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+            {isMenuOpen ? (
+              <X className="w-8 h-8" />
+            ) : (
+              <Menu className="w-8 h-8" />
+            )}
           </button>
         </div>
 
