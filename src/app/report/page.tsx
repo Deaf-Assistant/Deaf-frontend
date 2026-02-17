@@ -350,7 +350,7 @@ function ReportContent() {
                   variant="secondary"
                   size="lg"
                   onClick={() => router.back()}
-                  className="flex-1"
+                  className="flex-1 px-6 py-3 bg-gradient-to-br from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 text-gray-800 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                 >
                   ยกเลิก
                 </Button>
