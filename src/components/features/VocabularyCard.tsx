@@ -2,6 +2,7 @@
 
 import { Vocabulary } from '@/types';
 import { useRouter } from 'next/navigation';
+import { incrementView } from '@/lib/actions'; // 👈 1. import เข้ามา
 
 interface VocabularyCardProps {
   vocabulary: Vocabulary;
@@ -10,16 +11,35 @@ interface VocabularyCardProps {
 export default function VocabularyCard({ vocabulary }: VocabularyCardProps) {
   const router = useRouter();
 
+  const handleClick = () => {
+    // 👈 2. นับยอดวิวทันทีที่กด
+    incrementView('vocabularies', vocabulary.id);
+    router.push(`/vocabulary/${vocabulary.id}`);
+  };
+
   return (
     <div
-      onClick={() => router.push(`/vocabulary/${vocabulary.id}`)}
+      onClick={handleClick} // 👈 3. ใช้ฟังก์ชัน handleClick แทน
       className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden group"
     >
       {/* Content */}
       <div className="p-5">
-        <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-1">
-          {vocabulary.term_thai}
-        </h3>
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-xl font-bold text-gray-900 line-clamp-1">
+            {vocabulary.term_thai}
+          </h3>
+          
+          {/* 👈 4. ส่วนแสดงยอดวิว (ถ้ามีข้อมูล) */}
+          {(vocabulary.view_count !== undefined) && (
+            <div className="flex items-center text-gray-400 text-xs shrink-0 ml-2">
+              <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              {vocabulary.view_count}
+            </div>
+          )}
+        </div>
         
         {vocabulary.term_english && (
           <p className="text-base text-gray-600 mb-3 line-clamp-1">
@@ -27,19 +47,6 @@ export default function VocabularyCard({ vocabulary }: VocabularyCardProps) {
           </p>
         )}
 
-
-
-        {/* Course badge */}
-        {/* {vocabulary.courseName && (
-          <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
-            </svg>
-            {vocabulary.courseName}
-          </div>
-        )} */}
-
-        
       </div>
     </div>
   );

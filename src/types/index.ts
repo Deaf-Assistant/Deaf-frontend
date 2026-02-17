@@ -5,7 +5,7 @@ export type UserRole = 'STUDENT' | 'ADMIN' | 'INTERPRETER' | 'LECTURER';
 export interface User {
   id: string;
   email: string;
-  name: string; // ใน DB มี column name ใช่ไหม? หรือต้องดึงจาก metadata
+  name: string; 
   role: UserRole;
 }
 
@@ -14,7 +14,7 @@ export interface Course {
   code: string;
   name: string;
   description?: string;
-  image_url?: string; // แก้เป็น snake_case ตาม DB
+  image_url?: string; 
   created_at?: string;
   updated_at?: string;
   visibility?: 'everyone' | 'login' | 'admin';

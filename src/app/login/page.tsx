@@ -8,6 +8,10 @@ import Button from '@/components/ui/Button';
 import { authApi } from '@/lib/api';
 import { auth } from '@/lib/auth';
 import { ROUTES } from '@/lib/constants';
+import Image from 'next/image';
+
+// 1. Import รูปเข้ามาเพื่อให้ Next.js จัดการ (สังเกต .jpg ตามชื่อไฟล์จริง)
+import cmuLogo from '@/img/logocmu.jpg';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,7 +44,6 @@ export default function LoginPage() {
       auth.setToken(response.token);
       auth.setUser(response.user);
 
-      // Redirect to the original page if specified, otherwise based on role
       if (redirectUrl) {
         router.push(redirectUrl);
       } else if (auth.isAdmin()) {
@@ -56,10 +59,25 @@ export default function LoginPage() {
     }
   };
 
+  const handleCMULogin = () => {
+    const clientId = process.env.NEXT_PUBLIC_CMU_CLIENT_ID;
+    const redirectUri = `${process.env.NEXT_PUBLIC_BASE_URL}/cmuEntraIDCallback`;
+    const scope = 'api://cmu/Mis.Account.Read.Me.Basicinfo offline_access';
+
+    if (!clientId) {
+      alert("ไม่พบ CMU Client ID! กรุณาตรวจสอบไฟล์ .env.local");
+      return;
+    }
+
+    const authUrl = `https://login.microsoftonline.com/cf81f1df-de59-4c29-91da-a2dfd04aa751/oauth2/v2.0/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=xyz`;
+    
+    window.location.href = authUrl;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        {/* Logo */}
+        {/* Logo Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
             <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -70,7 +88,7 @@ export default function LoginPage() {
           <p className="text-blue-100 text-lg">เข้าสู่ระบบ</p>
         </div>
 
-        {/* Login Form */}
+        {/* Login Form Container */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -117,6 +135,36 @@ export default function LoginPage() {
             </Button>
           </form>
 
+          {/* CMU Login Section */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">หรือเข้าสู่ระบบด้วย</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCMULogin}
+              className="mt-6 w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+            >
+              {/* Image Logo */}
+              <div className="mr-3 relative w-6 h-6">
+                <Image 
+                  src={cmuLogo} 
+                  alt="CMU Logo"
+                  width={24}
+                  height={24}
+                  className="object-contain"
+                />
+              </div>
+              CMU Account
+            </button>
+          </div>
+
           {/* Links */}
           <div className="mt-6 text-center space-y-3">
             <p className="text-base text-gray-600">
@@ -135,7 +183,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Info */}
+        {/* Info Footer */}
         <div className="mt-6 text-center">
           <p className="text-blue-100 text-sm">
             สำหรับนักศึกษาและบุคลากร มหาวิทยาลัยเชียงใหม่
