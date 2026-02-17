@@ -3,39 +3,100 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Home, BookOpen, Book, AlertCircle, Settings, LogOut, LogIn, UserPlus, Menu, X, Heart } from 'lucide-react';
+import { Home, BookOpen, AlertCircle, Settings, LogOut, LogIn, UserPlus, Menu, X, Heart } from 'lucide-react';
 import { auth } from '@/lib/auth';
+import { createClient } from '@/lib/supabase';
 import { ROUTES } from '@/lib/constants';
-import Button from '@/components/ui/Button';
+
+const supabase = createClient();
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // ✅ เพิ่ม Loading State ป้องกันหน้ากระตุก
+  const [isLoading, setIsLoading] = useState(true);
 
-  const loadUser = () => {
-    setUser(auth.getUser());
+  // Helper เช็ค path อย่างเดียว (ไม่เกี่ยวกับ Style)
+  const isActive = (path: string) => {
+    if (path === ROUTES.HOME) return pathname === ROUTES.HOME;
+    return pathname === path || pathname.startsWith(path + '/');
+  };
+
+  const loadUser = async () => {
+    try {
+      const localUser = auth.getUser();
+      if (localUser) {
+        setUser(localUser);
+      } else {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data: profile } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+          const fullUser = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: profile?.name || session.user.user_metadata.name || 'User',
+              role: profile?.role || session.user.user_metadata.role || 'STUDENT',
+              ...profile
+          };
+
+          auth.setToken(session.access_token);
+          // @ts-ignore
+          auth.setUser(fullUser);
+          setUser(fullUser);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading user:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     loadUser();
-    window.addEventListener("auth-change", loadUser);
-    window.addEventListener("storage", loadUser);
+    
+    const handleAuthChange = () => loadUser();
+    window.addEventListener("auth-change", handleAuthChange);
+    window.addEventListener("storage", handleAuthChange);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+         loadUser();
+       } else if (event === 'SIGNED_OUT') {
+         setUser(null);
+         setIsLoading(false);
+       }
+    });
 
     return () => {
-      window.removeEventListener("auth-change", loadUser);
-      window.removeEventListener("storage", loadUser);
+      window.removeEventListener('auth-change', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+      subscription.unsubscribe();
     };
-  }, [pathname]);
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    setIsMenuOpen(false);
+    await supabase.auth.signOut();
     auth.logout();
-    router.push(ROUTES.LOGIN);
-    router.refresh();
+    setUser(null);
+    window.location.href = ROUTES.LOGIN; 
   };
 
-  const isActive = (path: string) => pathname === path;
+  // Skeleton Loader (แสดงตอนกำลังโหลด)
+  const AuthLoadingSkeleton = () => (
+    <div className="flex items-center space-x-3 animate-pulse">
+      <div className="h-10 w-24 bg-white/30 rounded-xl"></div>
+      <div className="h-10 w-24 bg-white/30 rounded-xl"></div>
+    </div>
+  );
 
   return (
     <header className="bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 shadow-lg sticky top-0 z-40">
@@ -45,6 +106,7 @@ export default function Header() {
           <Link
             href={ROUTES.HOME}
             className="flex items-center space-x-3 group shrink-0 whitespace-nowrap"
+            onClick={() => setIsMenuOpen(false)}
           >
             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-4xl">🦆</span>
@@ -59,7 +121,7 @@ export default function Header() {
           <nav className="hidden md:flex flex-1 items-center justify-center space-x-2 mx-12">
             <Link
               href={ROUTES.HOME}
-              className={`flex items-center whitespace-nowrap space-x-2 px-4 py-2.5 rounded-xl text-base font-bold transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 whitespace-nowrap ${
                 isActive(ROUTES.HOME)
                   ? 'bg-white text-purple-600 shadow-lg scale-105'
                   : 'text-purple-700 hover:bg-white/50 hover:scale-105'
@@ -71,8 +133,8 @@ export default function Header() {
 
             <Link
               href={ROUTES.COURSES}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
-                isActive(ROUTES.COURSES) || pathname.startsWith('/courses')
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 whitespace-nowrap ${
+                isActive(ROUTES.COURSES)
                   ? 'bg-white text-purple-600 shadow-lg scale-105'
                   : 'text-purple-700 hover:bg-white/50 hover:scale-105'
               }`}
@@ -83,63 +145,64 @@ export default function Header() {
 
             <Link
               href={ROUTES.VOCABULARY}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold whitespace-nowrap transition-all duration-200 ${
-                isActive(ROUTES.VOCABULARY) || pathname.startsWith('/vocabulary')
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 whitespace-nowrap ${
+                isActive(ROUTES.VOCABULARY)
                   ? 'bg-white text-purple-600 shadow-lg scale-105'
                   : 'text-purple-700 hover:bg-white/50 hover:scale-105'
               }`}
             >
               <span className="font-black text-sm shrink-0">ABC</span>
-              <span className="whitespace-nowrap">คำศัพท์</span>
+              <span>คำศัพท์</span>
             </Link>
 
-            {user && (
+            {!isLoading && user && (
               <Link
                 href={ROUTES.FAVORITES}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold whitespace-nowrap transition-all duration-200 ${
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 whitespace-nowrap ${
                   isActive(ROUTES.FAVORITES)
                     ? 'bg-white text-purple-600 shadow-lg scale-105'
                     : 'text-purple-700 hover:bg-white/50 hover:scale-105'
                 }`}
               >
                 <Heart className="w-5 h-5 shrink-0" />
-                <span className="whitespace-nowrap">รายการโปรด</span>
+                <span>รายการโปรด</span>
               </Link>
             )}
 
-            {user && (
+            {!isLoading && user && (
               <Link
                 href={ROUTES.REPORT}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 whitespace-nowrap ${
                   isActive(ROUTES.REPORT)
                     ? 'bg-white text-purple-600 shadow-lg scale-105'
                     : 'text-purple-700 hover:bg-white/50 hover:scale-105'
                 }`}
               >
                 <AlertCircle className="w-5 h-5 shrink-0" />
-                <span className="whitespace-nowrap">รายงานปัญหา</span>
+                <span>รายงานปัญหา</span>
               </Link>
             )}
 
-            {user && auth.isAdmin() && (
+            {!isLoading && user && auth.isAdmin() && (
               <Link
                 href={ROUTES.ADMIN_DASHBOARD}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 whitespace-nowrap ${
                   pathname.startsWith('/admin')
                     ? 'bg-amber-200 text-amber-800 shadow-lg scale-105'
                     : 'text-purple-700 hover:bg-white/50 hover:scale-105'
                 }`}
               >
                 <Settings className="w-5 h-5 shrink-0" />
-                <span className="whitespace-nowrap">จัดการระบบ</span>
+                <span>จัดการระบบ</span>
               </Link>
-              
             )}
           </nav>
 
-          {/* Desktop User section */}
+          {/* Desktop User Menu */}
           <div className="hidden md:flex items-center space-x-3">
-            {user ? (
+            {isLoading ? (
+               <AuthLoadingSkeleton />
+            ) : user ? (
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <p className="text-base font-bold text-purple-700 leading-none drop-shadow-sm">
@@ -151,39 +214,33 @@ export default function Header() {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="
-                    flex items-center gap-2
-                    px-6 py-3
-                    bg-rose-300 hover:bg-rose-400
-                    text-rose-800 rounded-xl font-bold
-                    whitespace-nowrap
-                    shadow-lg
-                    transition-all duration-200 hover:scale-105
-                  "
+                  className="flex items-center gap-2 px-6 py-3 bg-rose-300 hover:bg-rose-400 text-rose-800 rounded-xl font-bold whitespace-nowrap shadow-lg transition-all duration-200 hover:scale-105"
                 >
                   <LogOut className="w-5 h-5 shrink-0" />
-                  <span className="whitespace-nowrap">ออกจากระบบ</span>
+                  <span>ออกจากระบบ</span>
                 </button>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Link href={ROUTES.LOGIN}>
-                  <button className="flex items-center space-x-2 px-5 py-2.5 bg-white text-purple-600 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                <Link
+                  href={ROUTES.LOGIN}
+                  className="flex items-center justify-center space-x-2 px-4 py-3 bg-white text-purple-600 rounded-xl text-base font-bold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                >
                     <LogIn className="w-5 h-5" />
                     <span>เข้าสู่ระบบ</span>
-                  </button>
                 </Link>
-                <Link href={ROUTES.REGISTER}>
-                  <button className="flex items-center space-x-2 px-5 py-2.5 bg-amber-200 text-amber-800 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                <Link
+                  href={ROUTES.REGISTER}
+                  className="flex items-center justify-center space-x-2 px-4 py-3 bg-yellow-400 text-purple-700 rounded-xl text-base font-bold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                >
                     <UserPlus className="w-5 h-5" />
                     <span>ลงทะเบียน</span>
-                  </button>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 rounded-xl text-purple-700 hover:bg-white/30 transition-all"
@@ -196,15 +253,15 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile Navigation Menu */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-purple-300">
             <nav className="flex flex-col space-y-2">
               <Link
                 href={ROUTES.HOME}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                  isActive(ROUTES.HOME) 
-                    ? 'bg-white text-purple-600 shadow-md' 
+                className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
+                  isActive(ROUTES.HOME)
+                    ? 'bg-white text-purple-600 shadow-md'
                     : 'text-purple-700 hover:bg-white/30'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
@@ -215,9 +272,9 @@ export default function Header() {
 
               <Link
                 href={ROUTES.COURSES}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                  pathname.startsWith('/courses') 
-                    ? 'bg-white text-purple-600 shadow-md' 
+                className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
+                  isActive(ROUTES.COURSES)
+                    ? 'bg-white text-purple-600 shadow-md'
                     : 'text-purple-700 hover:bg-white/30'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
@@ -228,9 +285,9 @@ export default function Header() {
 
               <Link
                 href={ROUTES.VOCABULARY}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                  pathname.startsWith('/vocabulary') 
-                    ? 'bg-white text-purple-600 shadow-md' 
+                className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
+                  isActive(ROUTES.VOCABULARY)
+                    ? 'bg-white text-purple-600 shadow-md'
                     : 'text-purple-700 hover:bg-white/30'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
@@ -239,10 +296,10 @@ export default function Header() {
                 <span>คำศัพท์</span>
               </Link>
 
-              {user && (
+              {!isLoading && user && (
                 <Link
                   href={ROUTES.FAVORITES}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
                     isActive(ROUTES.FAVORITES)
                       ? 'bg-white text-purple-600 shadow-md'
                       : 'text-purple-700 hover:bg-white/30'
@@ -254,12 +311,12 @@ export default function Header() {
                 </Link>
               )}
 
-              {user && (
+              {!isLoading && user && (
                 <Link
                   href={ROUTES.REPORT}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                    isActive(ROUTES.REPORT) 
-                      ? 'bg-white text-purple-600 shadow-md' 
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
+                    isActive(ROUTES.REPORT)
+                      ? 'bg-white text-purple-600 shadow-md'
                       : 'text-purple-700 hover:bg-white/30'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
@@ -269,12 +326,12 @@ export default function Header() {
                 </Link>
               )}
 
-              {user && auth.isAdmin() && (
+              {!isLoading && user && auth.isAdmin() && (
                 <Link
                   href={ROUTES.ADMIN_DASHBOARD}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                    pathname.startsWith('/admin') 
-                      ? 'bg-amber-200 text-amber-800 shadow-md' 
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold transition-all ${
+                    pathname.startsWith('/admin')
+                      ? 'bg-amber-200 text-amber-800 shadow-md'
                       : 'text-purple-700 hover:bg-white/30'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
@@ -285,17 +342,18 @@ export default function Header() {
               )}
 
               <div className="pt-4 border-t border-purple-300">
-                {user ? (
+                {isLoading ? (
+                   <div className="flex justify-center py-2">
+                      <div className="h-10 w-full bg-white/30 rounded-xl animate-pulse"></div>
+                   </div>
+                ) : user ? (
                   <>
                     <div className="px-4 py-2 mb-3">
                       <p className="text-base font-bold text-purple-700">{user.name}</p>
                       <p className="text-sm text-purple-600">{user.role}</p>
                     </div>
                     <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
+                      onClick={handleLogout}
                       className="flex items-center justify-center space-x-2 w-full px-4 py-3 bg-rose-300 text-rose-800 rounded-xl text-base font-bold shadow-lg"
                     >
                       <LogOut className="w-5 h-5" />
@@ -306,7 +364,7 @@ export default function Header() {
                   <div className="space-y-2">
                     <Link
                       href={ROUTES.LOGIN}
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-white text-purple-600 rounded-xl text-base font-bold shadow-lg"
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-white text-purple-600 rounded-xl text-base font-bold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <LogIn className="w-5 h-5" />
@@ -314,7 +372,7 @@ export default function Header() {
                     </Link>
                     <Link
                       href={ROUTES.REGISTER}
-                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-amber-200 text-amber-800 rounded-xl text-base font-bold shadow-lg"
+                      className="flex items-center justify-center space-x-2 px-4 py-3 bg-yellow-400 text-purple-700 rounded-xl text-base font-bold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <UserPlus className="w-5 h-5" />

@@ -75,7 +75,16 @@ export const authApi = {
       .single();
       
     return { ...user, ...profile };
+  },
+
+  loginWithCMU() {
+    const clientId = process.env.NEXT_PUBLIC_CMU_CLIENT_ID;
+    const redirectUri = `${process.env.NEXT_PUBLIC_BASE_URL}/cmu/callback`;
+    const authUrl = `https://oauth.cmu.ac.th/v1/Authorize.aspx?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=cmuitaccount.basicinfo`;
+    
+    window.location.href = authUrl;
   }
+
 };
 
 // --- Courses API (ที่หายไป เติมให้แล้วครับ) ---
