@@ -1,12 +1,23 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { Home, BookOpen, Book, AlertCircle, Settings, LogOut, LogIn, UserPlus, Menu, X } from 'lucide-react';
-import { auth } from '@/lib/auth';
-import { ROUTES } from '@/lib/constants';
-import Button from '@/components/ui/Button';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import {
+  Home,
+  BookOpen,
+  Book,
+  AlertCircle,
+  Settings,
+  LogOut,
+  LogIn,
+  UserPlus,
+  Menu,
+  X,
+} from "lucide-react";
+import { auth } from "@/lib/auth";
+import { ROUTES } from "@/lib/constants";
+import Button from "@/components/ui/Button";
 
 export default function Header() {
   const router = useRouter();
@@ -20,12 +31,12 @@ export default function Header() {
 
   useEffect(() => {
     loadUser();
-    window.addEventListener('auth-change', loadUser);
-    window.addEventListener('storage', loadUser);
+    window.addEventListener("auth-change", loadUser);
+    window.addEventListener("storage", loadUser);
 
     return () => {
-      window.removeEventListener('auth-change', loadUser);
-      window.removeEventListener('storage', loadUser);
+      window.removeEventListener("auth-change", loadUser);
+      window.removeEventListener("storage", loadUser);
     };
   }, [pathname]);
 
@@ -42,13 +53,20 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex items-center space-x-3 group shrink-0 whitespace-nowrap">
+          <Link
+            href={ROUTES.HOME}
+            className="flex items-center space-x-3 group shrink-0 whitespace-nowrap"
+          >
             <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-4xl">🦆</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white drop-shadow-md">DDCMU</h1>
-              <p className="text-sm text-white/90 font-medium">ผู้ช่วยการเรียนรู้ 📚</p>
+              <h1 className="text-2xl font-bold text-white drop-shadow-md">
+                DDCMU
+              </h1>
+              <p className="text-sm text-white/90 font-medium">
+                ผู้ช่วยการเรียนรู้ 📚
+              </p>
             </div>
           </Link>
 
@@ -58,11 +76,10 @@ export default function Header() {
               href={ROUTES.HOME}
               className={`flex items-center whitespace-nowrap space-x-2 px-4 py-2.5 rounded-xl text-base font-bold transition-all duration-200 ${
                 isActive(ROUTES.HOME)
-                  ? 'bg-white text-purple-600 shadow-lg scale-105'
-                  : 'text-white hover:bg-white/20 hover:scale-105'
+                  ? "bg-white text-purple-600 shadow-lg scale-105"
+                  : "text-white hover:bg-white/20 hover:scale-105"
               }`}
->
-
+            >
               <Home className="w-5 h-5" />
               <span>หน้าแรก</span>
             </Link>
@@ -70,9 +87,9 @@ export default function Header() {
             <Link
               href={ROUTES.COURSES}
               className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
-                isActive(ROUTES.COURSES) || pathname.startsWith('/courses')
-                  ? 'bg-white text-purple-600 shadow-lg scale-105'
-                  : 'text-white hover:bg-white/20 hover:scale-105'
+                isActive(ROUTES.COURSES) || pathname.startsWith("/courses")
+                  ? "bg-white text-purple-600 shadow-lg scale-105"
+                  : "text-white hover:bg-white/20 hover:scale-105"
               }`}
             >
               <BookOpen className="w-5 h-5" />
@@ -80,44 +97,42 @@ export default function Header() {
             </Link>
 
             <Link
-  href={ROUTES.VOCABULARY}
-  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold whitespace-nowrap transition-all duration-200 ${
-    isActive(ROUTES.VOCABULARY) || pathname.startsWith('/vocabulary')
-      ? 'bg-white text-purple-600 shadow-lg scale-105'
-      : 'text-white hover:bg-white/20 hover:scale-105'
-  }`}
->
-  <Book className="w-5 h-5 shrink-0" />
-  <span className="whitespace-nowrap">คำศัพท์</span>
-</Link>
-
+              href={ROUTES.VOCABULARY}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl text-base font-bold whitespace-nowrap transition-all duration-200 ${
+                isActive(ROUTES.VOCABULARY) ||
+                pathname.startsWith("/vocabulary")
+                  ? "bg-white text-purple-600 shadow-lg scale-105"
+                  : "text-white hover:bg-white/20 hover:scale-105"
+              }`}
+            >
+              <Book className="w-5 h-5 shrink-0" />
+              <span className="whitespace-nowrap">คำศัพท์</span>
+            </Link>
 
             {user && (
-  <Link
-    href={ROUTES.FAVORITES}
-    className={`flex items-center px-6 py-3 rounded-xl text-base font-bold whitespace-nowrap transition-all duration-200 ${
-      isActive(ROUTES.FAVORITES)
-        ? 'bg-white text-purple-600 shadow-lg scale-105'
-        : 'text-white hover:bg-white/20 hover:scale-105'
-    }`}
-  >
-    <span className="whitespace-nowrap">รายการโปรด</span>
-  </Link>
-)}
-
+              <Link
+                href={ROUTES.FAVORITES}
+                className={`flex items-center px-6 py-3 rounded-xl text-base font-bold whitespace-nowrap transition-all duration-200 ${
+                  isActive(ROUTES.FAVORITES)
+                    ? "bg-white text-purple-600 shadow-lg scale-105"
+                    : "text-white hover:bg-white/20 hover:scale-105"
+                }`}
+              >
+                <span className="whitespace-nowrap">รายการโปรด</span>
+              </Link>
+            )}
 
             {user && (
               <Link
                 href={ROUTES.REPORT}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
                   isActive(ROUTES.REPORT)
-                    ? 'bg-white text-purple-600 shadow-lg scale-105'
-                    : 'text-white hover:bg-white/20 hover:scale-105'
+                    ? "bg-white text-purple-600 shadow-lg scale-105"
+                    : "text-white hover:bg-white/20 hover:scale-105"
                 }`}
               >
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <span className="whitespace-nowrap">รายงานปัญหา</span>
-
               </Link>
             )}
 
@@ -125,15 +140,15 @@ export default function Header() {
               <Link
                 href={ROUTES.ADMIN_DASHBOARD}
                 className={`flex items-center space-x-2 px-6 py-3 rounded-xl text-base font-bold transition-all duration-200 ${
-                  pathname.startsWith('/admin')
-                    ? 'bg-yellow-300 text-purple-700 shadow-lg scale-105'
-                    : 'text-white hover:bg-white/20 hover:scale-105'
+                  pathname.startsWith("/admin")
+                    ? "bg-yellow-300 text-purple-700 shadow-lg scale-105"
+                    : "text-white hover:bg-white/20 hover:scale-105"
                 }`}
               >
                 <Settings className="w-5 h-5 shrink-0" />
                 <span className="whitespace-nowrap">จัดการระบบ</span>
-
               </Link>
+              
             )}
           </nav>
 
@@ -143,10 +158,10 @@ export default function Header() {
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <p className="text-base font-bold text-white leading-none drop-shadow">
-                    {user?.user_metadata?.name || user?.name || 'User'}
+                    {user?.user_metadata?.name || user?.name || "User"}
                   </p>
                   <p className="text-xs text-white/90 font-semibold uppercase mt-1">
-                    {user?.user_metadata?.role || user?.role || 'authenticated'}
+                    {user?.user_metadata?.role || user?.role || "authenticated"}
                   </p>
                 </div>
                 <button
@@ -161,10 +176,9 @@ export default function Header() {
                     transition-all duration-200 hover:scale-105
                    "
                 >
-  <LogOut className="w-5 h-5 shrink-0" />
-  <span className="whitespace-nowrap">ออกจากระบบ</span>
-</button>
-
+                  <LogOut className="w-5 h-5 shrink-0" />
+                  <span className="whitespace-nowrap">ออกจากระบบ</span>
+                </button>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
@@ -189,7 +203,11 @@ export default function Header() {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 rounded-xl text-white hover:bg-white/20 transition-all"
           >
-            {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+            {isMenuOpen ? (
+              <X className="w-8 h-8" />
+            ) : (
+              <Menu className="w-8 h-8" />
+            )}
           </button>
         </div>
 
@@ -200,9 +218,9 @@ export default function Header() {
               <Link
                 href={ROUTES.HOME}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                  isActive(ROUTES.HOME) 
-                    ? 'bg-white text-purple-600 shadow-md' 
-                    : 'text-white hover:bg-white/20'
+                  isActive(ROUTES.HOME)
+                    ? "bg-white text-purple-600 shadow-md"
+                    : "text-white hover:bg-white/20"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -213,9 +231,9 @@ export default function Header() {
               <Link
                 href={ROUTES.COURSES}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                  pathname.startsWith('/courses') 
-                    ? 'bg-white text-purple-600 shadow-md' 
-                    : 'text-white hover:bg-white/20'
+                  pathname.startsWith("/courses")
+                    ? "bg-white text-purple-600 shadow-md"
+                    : "text-white hover:bg-white/20"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -226,9 +244,9 @@ export default function Header() {
               <Link
                 href={ROUTES.VOCABULARY}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                  pathname.startsWith('/vocabulary') 
-                    ? 'bg-white text-purple-600 shadow-md' 
-                    : 'text-white hover:bg-white/20'
+                  pathname.startsWith("/vocabulary")
+                    ? "bg-white text-purple-600 shadow-md"
+                    : "text-white hover:bg-white/20"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -240,8 +258,11 @@ export default function Header() {
               {user && (
                 <Link
                   href={ROUTES.FAVORITES}
-                  className={`px-4 py-3 rounded-lg text-base font-medium ${isActive(ROUTES.FAVORITES) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                    }`}
+                  className={`px-4 py-3 rounded-lg text-base font-medium ${
+                    isActive(ROUTES.FAVORITES)
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-700"
+                  }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
                   รายการโปรด
@@ -252,9 +273,9 @@ export default function Header() {
                 <Link
                   href={ROUTES.REPORT}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                    isActive(ROUTES.REPORT) 
-                      ? 'bg-white text-purple-600 shadow-md' 
-                      : 'text-white hover:bg-white/20'
+                    isActive(ROUTES.REPORT)
+                      ? "bg-white text-purple-600 shadow-md"
+                      : "text-white hover:bg-white/20"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -267,9 +288,9 @@ export default function Header() {
                 <Link
                   href={ROUTES.ADMIN_DASHBOARD}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-bold ${
-                    pathname.startsWith('/admin') 
-                      ? 'bg-yellow-300 text-purple-700 shadow-md' 
-                      : 'text-white hover:bg-white/20'
+                    pathname.startsWith("/admin")
+                      ? "bg-yellow-300 text-purple-700 shadow-md"
+                      : "text-white hover:bg-white/20"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -282,7 +303,9 @@ export default function Header() {
                 {user ? (
                   <>
                     <div className="px-4 py-2 mb-3">
-                      <p className="text-base font-bold text-white">{user.name}</p>
+                      <p className="text-base font-bold text-white">
+                        {user.name}
+                      </p>
                       <p className="text-sm text-white/80">{user.role}</p>
                     </div>
                     <button
