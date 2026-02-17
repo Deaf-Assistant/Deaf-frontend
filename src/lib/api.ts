@@ -282,7 +282,7 @@ async updateStatus(id: string, status: string) {
 
 
 
-
+export type UserRole = "ADMIN" | "LECTURER" | "INTERPRETER" | "STUDENT";
 // --- Users API (เพิ่มใหม่สำหรับ Admin) ---
 export const usersApi = {
   async getAll() {
@@ -290,10 +290,45 @@ export const usersApi = {
       .from('users')
       .select('id, name, email, role, created_at')
       .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // ✅ เพิ่มอันนี้
+  async updateRole(userId: string, role: string) {
+    // ดึง user ปัจจุบัน
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
+    // ดึง role ของคนที่กำลังใช้งาน
+    const { data: currentUser } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (currentUser?.role !== 'ADMIN') {
+      throw new Error("Permission denied");
+    }
+
+    // ❌ กันแก้ role ตัวเอง
+    if (user.id === userId) {
+      throw new Error("Cannot change your own role");
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ role })
+      .eq('id', userId)
+      .select()
+      .single();
+
     if (error) throw error;
     return data;
   }
 };
+
 
 // --- Dashboard Helper (Optional: ช่วยรวมข้อมูลให้ง่ายขึ้น) ---
 export const dashboardApi = {
@@ -413,3 +448,6 @@ export const uploadApi = {
     return { url: data.publicUrl };
   }
 };
+
+
+

@@ -31,6 +31,8 @@ export default function AddVocabularyPage() {
     }
   }, [searchParams]);
 
+  
+
   const onSubmit = async (formData: any) => {
     setLoading(true);
     try {

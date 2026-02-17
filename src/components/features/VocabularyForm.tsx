@@ -72,8 +72,8 @@ export default function VocabularyForm({
   );
   const [fingerspellingVideoPreview, setFingerspellingVideoPreview] = useState(
     vocabulary?.fingerspelling_video_url ||
-    vocabulary?.fingerspellingVideoUrl ||
-    "",
+      vocabulary?.fingerspellingVideoUrl ||
+      "",
   );
 
   // Sync กับ vocabulary prop
@@ -92,7 +92,11 @@ export default function VocabularyForm({
       setImagePreview2(vocabulary?.image_url2 || vocabulary?.imageUrl2 || "");
       setImagePreview3(vocabulary?.image_url3 || vocabulary?.imageUrl3 || "");
       setVideoPreview(vocabulary?.video_url || vocabulary?.videoUrl || "");
-      setFingerspellingVideoPreview(vocabulary?.fingerspelling_video_url || vocabulary?.fingerspellingVideoUrl || "");
+      setFingerspellingVideoPreview(
+        vocabulary?.fingerspelling_video_url ||
+          vocabulary?.fingerspellingVideoUrl ||
+          "",
+      );
     }
   }, [vocabulary]);
 
@@ -297,6 +301,11 @@ export default function VocabularyForm({
                 type="button"
                 className="w-full text-left px-4 py-2 hover:bg-gray-100"
                 onClick={async () => {
+                  const ok = window.confirm(
+                    `คุณแน่ใจหรือไม่ว่าต้องการใช้คำว่า "${v.term_thai}" จากคำแนะนำ?\n\nข้อมูลเดิมในฟอร์มจะถูกแทนที่`,
+                  );
+
+                  if (!ok) return;
                   // 1️⃣ text
                   setFormData({
                     ...formData,
@@ -423,10 +432,11 @@ export default function VocabularyForm({
                       : [...prev, cat.id],
                   );
                 }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategories.includes(cat.id)
-                  ? "ring-2 ring-offset-1"
-                  : "opacity-60 hover:opacity-100"
-                  }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  selectedCategories.includes(cat.id)
+                    ? "ring-2 ring-offset-1"
+                    : "opacity-60 hover:opacity-100"
+                }`}
                 style={{
                   backgroundColor: `${cat.color}20`,
                   color: cat.color,
