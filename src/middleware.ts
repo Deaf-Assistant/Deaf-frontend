@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { UserRole } from '@/types'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -24,7 +25,8 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 1. ตรวจสอบ User จาก Auth
+
+  // 1. ตรวจสอบว่ามี User ที่ Login อยู่จริงไหม (จาก Auth)
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname;
 

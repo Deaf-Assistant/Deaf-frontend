@@ -9,6 +9,8 @@ import VocabularyCard from '@/components/features/VocabularyCard';
 import SearchBox from '@/components/features/SearchBox';
 import Loading from '@/components/ui/Loading';
 import { vocabularyApi, coursesApi, authApi } from '@/lib/api';
+import { exportToExcel, exportToCSV } from '@/lib/exportUtils';
+import { auth } from '@/lib/auth';
 import { labelTagsApi } from '@/lib/label_api';
 import { LabelTag } from '@/types/label';
 
@@ -141,6 +143,21 @@ function VocabularyContent() {
     setSearchKeyword(keyword);
   };
 
+  const handleExport = (format: 'excel' | 'csv') => {
+    const rows = filteredVocabs.map((v) => ({
+      คำศัพท์ภาษาไทย: v.term_thai ?? '',
+      คำศัพท์ภาษาอังกฤษ: v.term_english ?? '',
+      รายวิชา: v.courses?.name ?? '',
+      บทเรียน: v.chapters?.name ?? '',
+      คำอธิบาย: v.definition ?? '',
+      URL_วิดีโอ: v.video_url ?? '',
+      URL_รูปภาพ: v.image_url ?? '',
+    }));
+    const filename = `vocabulary_${new Date().toISOString().slice(0, 10)}`;
+    if (format === 'excel') exportToExcel(rows, filename, 'คำศัพท์');
+    else exportToCSV(rows, filename);
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -152,7 +169,7 @@ function VocabularyContent() {
         <div className="container mx-auto px-4">
           <div className="mb-8">
             <h1 className="text-5xl font-extrabold text-gray-600 mb-2">
-            📚 คำศัพท์ทั้งหมด
+              📚 คำศัพท์ทั้งหมด
             </h1>
             <p className="text-xl text-gray-600">
               เลือกคำศัพท์ แล้วเรียนรู้ไปพร้อมกัน 🎉
@@ -209,8 +226,8 @@ function VocabularyContent() {
                 <button
                   onClick={() => setSelectedCategory('all')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap ${selectedCategory === 'all'
-                      ? 'bg-gray-800 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                    ? 'bg-gray-800 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                     }`}
                 >
                   ทั้งหมด
@@ -220,8 +237,8 @@ function VocabularyContent() {
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap ${selectedCategory === cat.id
-                        ? 'ring-2 ring-offset-1'
-                        : 'opacity-70 hover:opacity-100'
+                      ? 'ring-2 ring-offset-1'
+                      : 'opacity-70 hover:opacity-100'
                       }`}
                     style={{
                       backgroundColor: `${cat.color}20`,
@@ -237,12 +254,38 @@ function VocabularyContent() {
             </div>
           )}
 
-          <div className="mb-6">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <p className="text-base text-gray-600">
               {searchKeyword
                 ? `พบ ${filteredVocabs.length} คำศัพท์จากการค้นหา "${searchKeyword}"`
                 : `แสดง ${filteredVocabs.length} คำศัพท์`}
             </p>
+            {filteredVocabs.length > 0 && (() => {
+              const role = auth.getUser()?.role;
+              const canExport = role === 'INTERPRETER' || role === 'LECTURER' || role === 'ADMIN';
+              return canExport ? (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleExport('excel')}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    ดาวน์โหลด Excel
+                  </button>
+                  <button
+                    onClick={() => handleExport('csv')}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition shadow-sm border"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    ดาวน์โหลด CSV
+                  </button>
+                </div>
+              ) : null;
+            })()}
           </div>
 
           {filteredVocabs.length > 0 ? (

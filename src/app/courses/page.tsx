@@ -72,44 +72,43 @@ export default function CoursesPage() {
   const loadCourses = async () => {
     try {
       setLoading(true);
-      const [allCourses, user] = await Promise.all([
-        coursesApi.getAll(),
-        authApi.getCurrentUser()
-      ]);
 
-      setCurrentUser(user);
-      setCourses(allCourses); // Store ALL courses originally
-      const [coursesData, pinnedIds] = await Promise.all([
+      // FIX 1: Fetch all data in a single parallel batch (removed duplicate coursesApi.getAll())
+      const [allCourses, user, pinnedIds] = await Promise.all([
         coursesApi.getAll(),
+        authApi.getCurrentUser(),
         pinCoursesApi.getMyPinnedCourseIds().catch(() => []) // Handle error gracefully (e.g. not logged in)
       ]);
 
-      const pinnedSet = new Set(pinnedIds);
+      setCurrentUser(user);
+
+      const pinnedSet = new Set<string>(pinnedIds as string[]);
       setPinnedCourseIds(pinnedSet);
 
-      // Sort courses: pinned first, then by name (handled by API or default sort)
-      const sortedCourses = sortCourses(coursesData, pinnedSet);
+      // Sort courses: pinned first, then by original order
+      const sortedCourses = sortCourses(allCourses, pinnedSet);
 
       setCourses(sortedCourses);
       setFilteredCourses(sortedCourses);
 
-      // Load counts
-      const counts: Record<string, number> = {};
-      // We can load counts for all courses to avoid re-fetching when toggling
-      for (const course of allCourses) {
-        try {
-          const vocabs = await vocabularyApi.getAll(course.id);
-          counts[course.id] = vocabs.length;
-        } catch (err) {
-          counts[course.id] = 0;
-        }
-      }
-      setVocabularyCounts(counts);
+      // FIX 2 & 3: Show courses immediately, then load vocab counts in the background
+      // using Promise.all so all counts fetch in parallel instead of one-by-one
+      setLoading(false);
+
+      const countEntries = await Promise.all(
+        allCourses.map(async (course: any) => {
+          try {
+            const vocabs = await vocabularyApi.getAll(course.id);
+            return [course.id, vocabs.length] as [string, number];
+          } catch {
+            return [course.id, 0] as [string, number];
+          }
+        })
+      );
+      setVocabularyCounts(Object.fromEntries(countEntries));
 
     } catch (error) {
       console.error('Failed to load courses:', error);
-      // alert('ไม่สามารถโหลดรายวิชาได้'); // Commented out to prevent annoying alerts if just auth error
-    } finally {
       setLoading(false);
     }
   };
@@ -143,7 +142,7 @@ export default function CoursesPage() {
       ));
 
       toast.success(`เปลี่ยนการมองเห็นเป็น: ${nextVisibility === 'everyone' ? 'สาธารณะ' :
-          nextVisibility === 'login' ? 'เฉพาะนักศึกษา' : 'ผู้ดูแลเท่านั้น'
+        nextVisibility === 'login' ? 'เฉพาะสมาชิก' : 'ผู้ดูแลเท่านั้น'
         }`);
     } catch (error) {
       console.error(error);

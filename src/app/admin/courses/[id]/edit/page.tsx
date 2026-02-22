@@ -230,7 +230,7 @@ export default function EditCoursePage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">การมองเห็น</label>
               <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className="w-full px-5 py-5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                 value={formData.visibility}
                 onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
               >
@@ -322,18 +322,18 @@ export default function EditCoursePage() {
                         {chapter.name}
                       </span>
                       <div
-                        className="flex gap-2"
+                        className="flex gap-2 shrink-0 items-center"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <button
                           onClick={() => startEditing(chapter)}
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1 rounded hover:bg-blue-50"
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium px-2 py-1 rounded hover:bg-blue-50 whitespace-nowrap"
                         >
                           แก้ไข
                         </button>
                         <button
                           onClick={() => handleDeleteChapter(chapter.id)}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium px-2 py-1 rounded hover:bg-red-50"
+                          className="text-red-600 hover:text-red-800 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 whitespace-nowrap"
                         >
                           ลบ
                         </button>
