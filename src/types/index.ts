@@ -1,11 +1,11 @@
 // src/types/index.ts
 
-export type UserRole = 'STUDENT' | 'ADMIN' | 'INTERPRETER' | 'LECTURER';
+export type UserRole = 'STUDENT' | 'MEMBER' | 'ADMIN' | 'INTERPRETER' | 'LECTURER';
 
 export interface User {
   id: string;
   email: string;
-  name: string; 
+  name: string;
   role: UserRole;
 }
 
@@ -14,7 +14,7 @@ export interface Course {
   code: string;
   name: string;
   description?: string;
-  image_url?: string; 
+  image_url?: string;
   created_at?: string;
   updated_at?: string;
   visibility?: 'everyone' | 'login' | 'admin';

@@ -71,10 +71,9 @@ export default function Sidebar() {
               href={item.href}
               className={`
                 flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                ${
-                  isActive(item.href)
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-gray-700 hover:bg-gray-100"
+                ${isActive(item.href)
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
                 }
               `}
             >
@@ -86,13 +85,12 @@ export default function Sidebar() {
             <Link
               href="/admin/users"
               className={`
-      flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-      ${
-        pathname.startsWith("/admin/users")
-          ? "bg-blue-600 text-white shadow-md"
-          : "text-gray-700 hover:bg-gray-100"
-      }
-    `}
+                  flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
+                  ${pathname.startsWith("/admin/users")
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                }
+                `}
             >
               <span className="mr-3">
                 <svg
@@ -103,7 +101,65 @@ export default function Sidebar() {
                   <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0zM4 14a4 4 0 018 0v1H4v-1zM14 14a4 4 0 014 0v1h-4v-1z" />
                 </svg>
               </span>
-              จัดการ Role
+              จัดการผู้ใช้
+            </Link>
+          )}
+          {user?.role === "ADMIN" && (
+            <Link
+              href="/admin/media"
+              className={`
+                  flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
+                  ${pathname.startsWith("/admin/media")
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                }
+                `}
+            >
+              <span className="mr-3">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                </svg>
+              </span>
+              จัดการสื่อ
+            </Link>
+          )}
+          {user?.role === "ADMIN" && (
+            <Link
+              href="/admin/stats"
+              className={`
+                  flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
+                  ${pathname.startsWith("/admin/stats")
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                }
+                `}
+            >
+              <span className="mr-3">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+              </span>
+              สถิติผู้ใช้
+            </Link>
+          )}
+          {user?.role === "ADMIN" && (
+            <Link
+              href="/admin/audit-log"
+              className={`
+                  flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
+                  ${pathname.startsWith("/admin/audit-log")
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                }
+                `}
+            >
+              <span className="mr-3">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </span>
+              Audit Log
             </Link>
           )}
         </nav>

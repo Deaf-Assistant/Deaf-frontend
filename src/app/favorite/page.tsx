@@ -29,7 +29,7 @@ export default function FavoritesPage() {
                 setLoading(false);
             }
         }
-    }, [isAuthenticated, authLoading]);
+    }, [isAuthenticated]);
 
     const loadFavorites = async () => {
         try {

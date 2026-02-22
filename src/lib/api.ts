@@ -1,5 +1,7 @@
 
 import { createClient } from './supabase';
+import type { UserRole } from '@/types';
+
 
 
 const supabase = createClient();
@@ -9,14 +11,14 @@ export const authApi = {
   async login(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    
+
     // --- เพิ่มส่วนนี้: ดึงข้อมูล Role จากตาราง users ---
     const { data: profile } = await supabase
       .from('users')
       .select('*')
       .eq('id', data.user.id)
       .single();
-      
+
     // ผนวกข้อมูล Auth user เข้ากับ Profile (เพื่อให้ได้ role ที่ถูกต้องจาก DB)
     const fullUser = {
       ...data.user,
@@ -33,7 +35,7 @@ export const authApi = {
   // รับค่าเป็น Object ตามที่ RegisterPage ส่งมา
   async register(data: { email: string; password: string; name: string; role: string }) {
     const { email, password, name, role } = data;
-    
+
     // 1. สมัครสมาชิก
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
@@ -44,19 +46,19 @@ export const authApi = {
 
     // 2. บันทึกลงตาราง users
     if (authData.user) {
-        const { error: profileError } = await supabase.from('users').insert({
-            id: authData.user.id,
-            email: email,
-            name: name,
-            role: role
-        });
-        if (profileError) console.error('Error creating profile:', profileError);
+      const { error: profileError } = await supabase.from('users').insert({
+        id: authData.user.id,
+        email: email,
+        name: name,
+        role: role
+      });
+      if (profileError) console.error('Error creating profile:', profileError);
     }
 
     // แปลงค่า return
     return {
-        user: authData.user,
-        token: authData.session?.access_token
+      user: authData.user,
+      token: authData.session?.access_token
     };
   },
 
@@ -67,13 +69,13 @@ export const authApi = {
   async getCurrentUser() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
-    
+
     const { data: profile } = await supabase
       .from('users')
       .select('*')
       .eq('id', user.id)
       .single();
-      
+
     return { ...user, ...profile };
   },
 
@@ -81,7 +83,7 @@ export const authApi = {
     const clientId = process.env.NEXT_PUBLIC_CMU_CLIENT_ID;
     const redirectUri = `${process.env.NEXT_PUBLIC_BASE_URL}/cmu/callback`;
     const authUrl = `https://oauth.cmu.ac.th/v1/Authorize.aspx?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=cmuitaccount.basicinfo`;
-    
+
     window.location.href = authUrl;
   }
 
@@ -94,12 +96,12 @@ export const coursesApi = {
     const { data, error } = await supabase
       .from('courses')
       .select('*')
-      .order('name'); 
+      .order('name');
     if (error) throw error;
     return data;
   },
 
-async getById(id: string) {
+  async getById(id: string) {
     const { data, error } = await supabase
       .from('courses')
       // แก้ไขตรงนี้: เพิ่ม chapters(*) เพื่อดึงข้อมูลบทเรียนมาด้วย
@@ -154,38 +156,38 @@ async getById(id: string) {
 export const vocabularyApi = {
   async getAll(courseId?: string) {
     let query = supabase.from('vocabularies').select('*, courses(name), chapters(name)');
-    
+
     // ถ้ามีการส่ง courseId มาให้กรองด้วย (ใช้ในหน้า CoursesPage ที่นายพยายามแก้)
     if (courseId) {
       query = query.eq('course_id', courseId);
     }
-    
+
     const { data, error } = await query;
     if (error) throw error;
     return data;
   },
 
-async getById(id: string) {
-  const { data, error } = await supabase
-    .from('vocabularies')
-    .select(`
+  async getById(id: string) {
+    const { data, error } = await supabase
+      .from('vocabularies')
+      .select(`
       *,
       courses (name),
       chapters (name)
     `)
-    .eq('id', id)
-    .single();
-  
-  if (error) throw error;
-  return data;
-},
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 
   async search(keyword: string, courseId?: string) {
     let query = supabase
       .from('vocabularies')
       .select('*, courses(name)')
       .ilike('term_thai', `%${keyword}%`);
-      
+
     if (courseId) {
       query = query.eq('course_id', courseId);
     }
@@ -213,38 +215,20 @@ async getById(id: string) {
   }
 };
 
-// // --- Upload API ---
-// export const uploadApi = {
-//   async uploadFile(file: File, bucket: 'images' | 'videos' = 'images') {
-//     const fileExt = file.name.split('.').pop();
-//     const fileName = `${Date.now()}.${fileExt}`;
-//     const filePath = `${fileName}`;
-
-//     const { error: uploadError } = await supabase.storage
-//       .from(bucket)
-//       .upload(filePath, file);
-
-//     if (uploadError) throw uploadError;
-
-//     const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-//     return { url: data.publicUrl };
-//   }
-// };
-
 // --- Reports API ---
 export const reportsApi = {
-    async create(data: any) {
-        const { data: result, error } = await supabase.from('reports').insert(data).select();
-        if (error) throw error;
-        return result;
-    },
-    async getAll() {
-        const { data, error } = await supabase.from('reports').select('*, vocabularies(term_thai,id), users(name)');
-        if (error) throw error;
-        return data;
-    },
+  async create(data: any) {
+    const { data: result, error } = await supabase.from('reports').insert(data).select();
+    if (error) throw error;
+    return result;
+  },
+  async getAll() {
+    const { data, error } = await supabase.from('reports').select('*, vocabularies(term_thai,id), users(name)');
+    if (error) throw error;
+    return data;
+  },
 
-// ✅ ใหม่: ดึง report ของ user คนเดียว
+  // ✅ ใหม่: ดึง report ของ user คนเดียว
   async getMine(userId: string) {
     const { data, error } = await supabase
       .from('reports')
@@ -262,8 +246,8 @@ export const reportsApi = {
     if (error) throw error;
     return data;
   },
-  
-async updateStatus(id: string, status: string) {
+
+  async updateStatus(id: string, status: string) {
     const { data, error } = await supabase
       .from('reports')       // ชื่อตารางต้องตรงเป๊ะ
       .update({ status })    // สั่งอัปเดตคอลัมน์ status
@@ -271,18 +255,15 @@ async updateStatus(id: string, status: string) {
       .select();             // (Optional) ขอข้อมูลที่อัปเดตแล้วคืนมา
 
     if (error) {
-        console.error("Update Status Error:", error);
-        throw error;
+      console.error("Update Status Error:", error);
+      throw error;
     }
-    
+
     return data;
   }
 };
 
 
-
-
-export type UserRole = "ADMIN" | "LECTURER" | "INTERPRETER" | "STUDENT";
 // --- Users API (เพิ่มใหม่สำหรับ Admin) ---
 export const usersApi = {
   async getAll() {
@@ -295,37 +276,40 @@ export const usersApi = {
     return data;
   },
 
+  async deleteUser(userId: string) {
+    // ดึง session token เพื่อส่งไปยัง server route (ใช้ service role key ลบออกจาก Auth)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Not authenticated");
+
+    const res = await fetch("/api/admin/delete-user", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.message ?? "ลบผู้ใช้ไม่สำเร็จ");
+  },
+
   // ✅ เพิ่มอันนี้
-  async updateRole(userId: string, role: string) {
-    // ดึง user ปัจจุบัน
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
+  async updateRole(userId: string, role: UserRole) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Not authenticated");
 
-    // ดึง role ของคนที่กำลังใช้งาน
-    const { data: currentUser } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    const res = await fetch("/api/admin/change-role", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ userId, newRole: role }),
+    });
 
-    if (currentUser?.role !== 'ADMIN') {
-      throw new Error("Permission denied");
-    }
-
-    // ❌ กันแก้ role ตัวเอง
-    if (user.id === userId) {
-      throw new Error("Cannot change your own role");
-    }
-
-    const { data, error } = await supabase
-      .from('users')
-      .update({ role })
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.message ?? "เปลี่ยน Role ไม่สำเร็จ");
   }
 };
 
@@ -357,12 +341,12 @@ export const dashboardApi = {
 export const chaptersApi = {
   async getAll(courseId?: string) {
     let query = supabase.from('chapters').select('*').order('name');
-    
+
     // กรองตามวิชาที่เลือก
     if (courseId) {
       query = query.eq('course_id', courseId);
     }
-    
+
     const { data, error } = await query;
     if (error) throw error;
     return data;
@@ -385,7 +369,7 @@ export const chaptersApi = {
     return true;
   },
 
-async create(data: { name: string; course_id: string }) {
+  async create(data: { name: string; course_id: string }) {
     // 1. หาค่า order สูงสุดที่มีอยู่ในคอร์สนี้ก่อน
     const { data: maxRecord, error: fetchError } = await supabase
       .from('chapters')
@@ -411,7 +395,7 @@ async create(data: { name: string; course_id: string }) {
       })
       .select()
       .single();
-      
+
     if (error) throw error;
     return result;
   },

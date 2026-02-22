@@ -185,49 +185,49 @@ export default function AdminCoursesPage() {
                       <td className="px-6 py-4 text-gray-500 text-sm">
                         {new Date(c.created_at).toLocaleDateString("th-TH")}
                       </td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const currentVisibility = c.visibility || 'everyone';
-                            let nextVisibility = 'everyone';
-                            if (currentVisibility === 'everyone') nextVisibility = 'login';
-                            else if (currentVisibility === 'login') nextVisibility = 'admin';
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2 flex-nowrap">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const currentVisibility = c.visibility || 'everyone';
+                              let nextVisibility = 'everyone';
+                              if (currentVisibility === 'everyone') nextVisibility = 'login';
+                              else if (currentVisibility === 'login') nextVisibility = 'admin';
 
-                            coursesApi.update(c.id, { visibility: nextVisibility }).then(() => {
-                              setCourses(courses.map(course =>
-                                course.id === c.id ? { ...course, visibility: nextVisibility } : course
-                              ));
-                              toast.success(`เปลี่ยนการมองเห็นเป็น: ${nextVisibility === 'everyone' ? 'สาธารณะ' :
+                              coursesApi.update(c.id, { visibility: nextVisibility }).then(() => {
+                                setCourses(courses.map(course =>
+                                  course.id === c.id ? { ...course, visibility: nextVisibility } : course
+                                ));
+                                toast.success(`เปลี่ยนการมองเห็นเป็น: ${nextVisibility === 'everyone' ? 'สาธารณะ' :
                                   nextVisibility === 'login' ? 'เฉพาะสมาชิก' : 'ผู้ดูแลเท่านั้น'
-                                }`);
-                            });
-                          }}
-                          className={`${(c.visibility || 'everyone') === 'everyone' ? '!bg-green-100 !text-green-800 hover:!bg-green-200' :
+                                  }`);
+                              });
+                            }}
+                            className={`whitespace-nowrap ${(c.visibility || 'everyone') === 'everyone' ? '!bg-green-100 !text-green-800 hover:!bg-green-200' :
                               c.visibility === 'login' ? '!bg-yellow-100 !text-yellow-800 hover:!bg-yellow-200' :
                                 '!bg-red-100 !text-red-800 hover:!bg-red-200'
-                            }`}
-                        >
-                          {(c.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
-                            c.visibility === 'login' ? 'เฉพาะสมาชิก' : 'ผู้ดูแล'}
-                        </Button>
-                        <Link href={`/admin/courses/${c.id}/edit`} onClick={(e) => e.stopPropagation()}>
-                          <Button variant="secondary" size="sm">
-                            แก้ไข
+                              }`}
+                          >
+                            {(c.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
+                              c.visibility === 'login' ? 'เฉพาะสมาชิก' : 'ผู้ดูแล'}
                           </Button>
-                        </Link>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteConfirm({ id: c.id, name: c.name, code: c.code });
-                          }}
-                        >
-                          ลบ
-                        </Button>
+                          <Link href={`/admin/courses/${c.id}/edit`} onClick={(e) => e.stopPropagation()}>
+                            <Button variant="secondary" size="sm">แก้ไข</Button>
+                          </Link>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteConfirm({ id: c.id, name: c.name, code: c.code });
+                            }}
+                          >
+                            ลบ
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))

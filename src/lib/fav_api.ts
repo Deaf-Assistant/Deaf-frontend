@@ -27,6 +27,8 @@ export const favoritesApi = {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
+    console.log('[favoritesApi] raw data:', JSON.stringify(data?.[0]));
+    console.log('[favoritesApi] error:', error);
     if (error) throw error;
     return data || [];
   },

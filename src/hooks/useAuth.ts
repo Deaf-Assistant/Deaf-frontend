@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { UserRole } from '@/types';
 
 // Extended user type with profile data
 export interface AuthUser extends Partial<SupabaseUser> {
     id: string;
     email?: string;
     name?: string;
-    role?: string;
+    role?: UserRole;
 }
 
 interface UseAuthReturn {
@@ -19,7 +20,7 @@ interface UseAuthReturn {
     isAdmin: boolean;
     login: (email: string, password: string) => Promise<{ user: AuthUser; token?: string }>;
     logout: () => Promise<void>;
-    register: (data: { email: string; password: string; name: string; role: string }) => Promise<{ user: AuthUser | null; token?: string }>;
+    register: (data: { email: string; password: string; name: string; role: UserRole }) => Promise<{ user: AuthUser | null; token?: string }>;
     refreshUser: () => Promise<void>;
 }
 
@@ -55,7 +56,7 @@ export function useAuth(): UseAuthReturn {
         return {
             ...authUser,
             ...profile,
-        };
+        } as AuthUser;
     }, [supabase, fetchUserProfile]);
 
     // Refresh user data
@@ -81,7 +82,7 @@ export function useAuth(): UseAuthReturn {
             async (event, session) => {
                 if (event === 'SIGNED_IN' && session?.user) {
                     const profile = await fetchUserProfile(session.user.id);
-                    setUser({ ...session.user, ...profile });
+                    setUser({ ...session.user, ...profile } as AuthUser);
                 } else if (event === 'SIGNED_OUT') {
                     setUser(null);
                 }
@@ -104,7 +105,7 @@ export function useAuth(): UseAuthReturn {
         if (error) throw error;
 
         const profile = await fetchUserProfile(data.user.id);
-        const fullUser: AuthUser = { ...data.user, ...profile };
+        const fullUser: AuthUser = { ...data.user, ...profile } as AuthUser;
 
         setUser(fullUser);
 
@@ -126,7 +127,7 @@ export function useAuth(): UseAuthReturn {
         email: string;
         password: string;
         name: string;
-        role: string
+        role: UserRole
     }) => {
         const { email, password, name, role } = data;
 

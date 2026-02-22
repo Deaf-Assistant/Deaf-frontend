@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { UserRole } from '@/types'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -24,7 +25,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  
+
   // 1. ตรวจสอบว่ามี User ที่ Login อยู่จริงไหม (จาก Auth)
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -42,14 +43,14 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    const adminRoles = ['ADMIN', 'INTERPRETER', 'LECTURER']
+    const adminRoles: UserRole[] = ['ADMIN', 'INTERPRETER', 'LECTURER']
 
     // 4. เช็คสิทธิ์: ถ้าไม่มีโปรไฟล์ หรือ Role ไม่ได้อยู่ในกลุ่มที่อนุญาต
     if (!profile || !adminRoles.includes(profile.role)) {
       // ส่งกลับหน้าแรก (Unauthorized)
       return NextResponse.redirect(new URL('/', request.url))
     }
- 
+
   }
 
   return response
@@ -57,5 +58,5 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // ระบุ Path ที่ต้องการให้ Middleware ตรวจสอบ
-  matcher: ['/admin/:path*', '/vocabulary/:path*'], 
+  matcher: ['/admin/:path*', '/vocabulary/:path*'],
 }
