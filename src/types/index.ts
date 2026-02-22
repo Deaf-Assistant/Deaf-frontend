@@ -28,7 +28,7 @@ export interface Vocabulary {
   image_url?: string;   // แก้เป็น snake_case
   video_url?: string;   // แก้เป็น snake_case
   course_id?: string;   // แก้เป็น snake_case
-  chapter_id?: string;  // แก้เป็น snake_case
+  chapter_id?: string;  
   created_by?: string;
   created_at: string;
   updated_at: string;

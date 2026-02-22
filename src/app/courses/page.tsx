@@ -50,8 +50,7 @@ export default function CoursesPage() {
         return true;
       }
 
-      // Fallback for normal users (should behave like student mostly)
-      if (currentUser) {
+      if (currentUser?.role === 'STUDENT') {
         return visibility === 'everyone' || visibility === 'login';
       }
 
@@ -144,7 +143,7 @@ export default function CoursesPage() {
       ));
 
       toast.success(`เปลี่ยนการมองเห็นเป็น: ${nextVisibility === 'everyone' ? 'สาธารณะ' :
-          nextVisibility === 'login' ? 'เฉพาะสมาชิก' : 'ผู้ดูแลเท่านั้น'
+          nextVisibility === 'login' ? 'เฉพาะนักศึกษา' : 'ผู้ดูแลเท่านั้น'
         }`);
     } catch (error) {
       console.error(error);

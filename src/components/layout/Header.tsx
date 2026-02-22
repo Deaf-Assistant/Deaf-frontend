@@ -24,33 +24,38 @@ export default function Header() {
     return pathname === path || pathname.startsWith(path + '/');
   };
 
-  const loadUser = async () => {
+const loadUser = async () => {
     try {
+      // 1. โหลดข้อมูลจาก Local Storage มาแสดงก่อน เพื่อไม่ให้หน้าจอกระตุก
       const localUser = auth.getUser();
       if (localUser) {
         setUser(localUser);
-      } else {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const { data: profile } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
+      }
 
-          const fullUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              name: profile?.name || session.user.user_metadata.name || 'User',
-              role: profile?.role || session.user.user_metadata.role || 'STUDENT',
-              ...profile
-          };
+      // 2. แอบไปดึงข้อมูลใหม่ล่าสุดจาก Database (Supabase) มาเช็คสิทธิ์ซ้ำ
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-          auth.setToken(session.access_token);
-          // @ts-ignore
-          auth.setUser(fullUser);
-          setUser(fullUser);
-        }
+        const fullUser = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: profile?.name || session.user.user_metadata?.name || 'User',
+            role: profile?.role || session.user.user_metadata?.role || 'STUDENT',
+            ...profile
+        };
+
+        // 3. ถ้าข้อมูลใหม่ไม่ตรงกับของเดิม ให้อัปเดต Local Storage และหน้าจอทันที
+        auth.setToken(session.access_token);
+        // @ts-ignore
+        auth.setUser(fullUser);
+        setUser(fullUser);
+      } else if (!localUser) {
+        setUser(null);
       }
     } catch (error) {
       console.error("Error loading user:", error);

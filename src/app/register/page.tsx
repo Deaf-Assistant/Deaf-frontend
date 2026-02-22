@@ -16,7 +16,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'STUDENT',
+    role: 'MEMBER',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -70,13 +70,22 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     try {
       const { confirmPassword, ...registerData } = formData;
-      const response = await authApi.register(registerData);
 
-      // --- ส่วนที่แก้ไข ---
-      // ตรวจสอบว่ามี token และ user ส่งกลับมาหรือไม่ ก่อนที่จะบันทึก
+      // <--- แก้ไขจุดที่ 2: เพิ่ม Logic ตรวจสอบ Email เพื่อกำหนด Role อัตโนมัติ --->
+      let finalRole = registerData.role;
+      
+      // ดักไว้เฉพาะคนที่สมัครแบบผู้ใช้ทั่วไป/นักศึกษา
+      if (finalRole === 'MEMBER' || finalRole === 'STUDENT') {
+        const isCmuMail = registerData.email.toLowerCase().endsWith('@cmu.ac.th');
+        finalRole = isCmuMail ? 'STUDENT' : 'MEMBER';
+      }
+
+      const finalPayload = { ...registerData, role: finalRole };
+      const response = await authApi.register(finalPayload);
+      // <---------------------------------------------------------------->
+
       if (response.token && response.user) {
         auth.setToken(response.token);
-        // ใช้ as any เพื่อเลี่ยงปัญหา Type Mismatch ระหว่าง Supabase User กับ App User ชั่วคราว
         auth.setUser(response.user as any);
 
         alert('ลงทะเบียนสำเร็จ!');
@@ -88,11 +97,9 @@ const handleSubmit = async (e: React.FormEvent) => {
         }
         router.refresh();
       } else {
-        // กรณีที่ลงทะเบียนสำเร็จแต่ไม่ได้ Token ทันที (เช่น ระบบต้องรอ Verify Email)
         alert('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
         router.push(ROUTES.LOGIN);
       }
-      // -----------------
 
     } catch (err: any) {
       setErrors({ form: err.message || 'ลงทะเบียนไม่สำเร็จ' });
@@ -177,8 +184,8 @@ const handleSubmit = async (e: React.FormEvent) => {
               placeholder="••••••••"
               autoComplete="new-password"
             />
-
-            <div>
+{/*}
+          <div>
               <label className="block text-base font-medium text-gray-700 mb-2">
                 ประเภทผู้ใช้ <span className="text-red-500">*</span>
               </label>
@@ -194,7 +201,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <option value="ADMIN">ผู้ดูแลระบบ</option>
               </select>
             </div>
-
+*/}
             <Button
               type="submit"
               fullWidth
