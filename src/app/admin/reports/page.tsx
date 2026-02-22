@@ -10,7 +10,6 @@ export default function AdminReportPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -131,7 +130,8 @@ export default function AdminReportPage() {
                 <th className="px-4 py-3 font-medium text-gray-700">สถานะ</th>
                 <th className="px-4 py-3 font-medium text-gray-700 w-44">
                   <div className="flex items-center gap-2">
-                    {/* Checkbox เลือกทั้งหมด (เฉพาะที่จัดการแล้ว) */}
+                    <span>จัดการ</span>
+                    {/* ย้าย Checkbox เลือกทั้งหมด มาไว้ด้านขวา */}
                     <input 
                       type="checkbox" 
                       className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer disabled:opacity-50"
@@ -140,7 +140,6 @@ export default function AdminReportPage() {
                       disabled={deletableReports.length === 0}
                       title="เลือกทั้งหมด"
                     />
-                    <span>จัดการ</span>
                   </div>
                 </th>
               </tr>
@@ -180,7 +179,6 @@ export default function AdminReportPage() {
                       <div className="flex items-center gap-2">
                         {report.status === 'PENDING' ? (
                           <>
-                            {/* ไม่มี Checkbox แสดงปุ่มจัดการ */}
                             <button 
                               onClick={() => updateStatus(report.id, 'RESOLVED')}
                               className="text-green-600 hover:text-green-800 text-xs font-medium border border-green-200 px-2 py-1 rounded hover:bg-green-50"
@@ -196,19 +194,19 @@ export default function AdminReportPage() {
                           </>
                         ) : (
                           <>
-                            {/* แสดง Checkbox คู่กับปุ่มลบ เมื่อจัดการแล้ว */}
-                            <input 
-                              type="checkbox" 
-                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
-                              checked={selectedIds.includes(report.id)}
-                              onChange={() => handleSelectOne(report.id)}
-                            />
+                            {/* ย้ายปุ่มลบมาไว้ด้านซ้าย และ Checkbox ไปด้านขวา */}
                             <button 
                               onClick={() => deleteReport(report.id)}
                               className="text-red-600 hover:text-red-800 text-xs font-medium border border-red-200 px-3 py-1 rounded hover:bg-red-50 bg-white"
                             >
                               🗑️ ลบคำร้องเรียน
                             </button>
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
+                              checked={selectedIds.includes(report.id)}
+                              onChange={() => handleSelectOne(report.id)}
+                            />
                           </>
                         )}
                       </div>
