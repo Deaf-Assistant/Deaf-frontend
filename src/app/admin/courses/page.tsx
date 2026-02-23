@@ -11,11 +11,26 @@ import { coursesApi } from "@/lib/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+type Preset = "all" | "today" | "7d" | "30d" | "month" | "custom";
+
+// Returns the start-of-day Date for N days ago
+function daysAgo(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; code: string } | null>(null);
+
+  // ── Date filter state ──────────────────────
+  const [preset, setPreset] = useState<Preset>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
     loadCourses();
@@ -34,13 +49,45 @@ export default function AdminCoursesPage() {
     }
   };
 
+  // Compute effective date window from preset or custom inputs
+  const { effectiveFrom, effectiveTo } = useMemo(() => {
+    const today = new Date(); today.setHours(23, 59, 59, 999);
+    if (preset === "today") return { effectiveFrom: daysAgo(0), effectiveTo: today };
+    if (preset === "7d") return { effectiveFrom: daysAgo(6), effectiveTo: today };
+    if (preset === "30d") return { effectiveFrom: daysAgo(29), effectiveTo: today };
+    if (preset === "month") {
+      const s = new Date(today.getFullYear(), today.getMonth(), 1);
+      return { effectiveFrom: s, effectiveTo: today };
+    }
+    if (preset === "custom") {
+      const f = dateFrom ? new Date(dateFrom) : null;
+      const t = dateTo ? new Date(dateTo + "T23:59:59") : null;
+      return { effectiveFrom: f, effectiveTo: t };
+    }
+    return { effectiveFrom: null, effectiveTo: null };
+  }, [preset, dateFrom, dateTo]);
+
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-    if (!query) return courses;
-    return courses.filter((c) =>
-      `${c.code} ${c.name}`.toLowerCase().includes(query)
-    );
-  }, [q, courses]);
+    return courses.filter((c) => {
+      const matchText = !query || `${c.code} ${c.name}`.toLowerCase().includes(query);
+      const created = c.created_at ? new Date(c.created_at) : null;
+      const matchFrom = !effectiveFrom || (created && created >= effectiveFrom);
+      const matchTo = !effectiveTo || (created && created <= effectiveTo);
+      return matchText && matchFrom && matchTo;
+    });
+  }, [q, courses, effectiveFrom, effectiveTo]);
+
+  const clearDateFilter = () => { setPreset("all"); setDateFrom(""); setDateTo(""); };
+
+  const PRESETS: { key: Preset; label: string }[] = [
+    { key: "all", label: "ทั้งหมด" },
+    { key: "today", label: "วันนี้" },
+    { key: "7d", label: "7 วัน" },
+    { key: "30d", label: "30 วัน" },
+    { key: "month", label: "เดือนนี้" },
+    { key: "custom", label: "กำหนดเอง" },
+  ];
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm) return;
@@ -124,8 +171,9 @@ export default function AdminCoursesPage() {
           </div>
         </div>
 
-        {/* Search */}
-        <Card className="p-4">
+        {/* Search + Date Filter */}
+        <Card className="p-4 space-y-3">
+          {/* Row 1: search + count */}
           <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
             <div className="md:w-96">
               <Input
@@ -137,6 +185,51 @@ export default function AdminCoursesPage() {
             <p className="text-sm text-gray-600">
               แสดง {filtered.length} / {courses.length} รายวิชา
             </p>
+          </div>
+
+          {/* Row 2: date filter */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-500 font-medium whitespace-nowrap">📅 สร้างเมื่อ:</span>
+            {PRESETS.map((p) => (
+              <button
+                key={p.key}
+                onClick={() => { setPreset(p.key); if (p.key !== "custom") { setDateFrom(""); setDateTo(""); } }}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${preset === p.key
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400 hover:text-indigo-600"
+                  }`}
+              >
+                {p.label}
+              </button>
+            ))}
+
+            {/* Custom range pickers */}
+            {preset === "custom" && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                />
+                <span className="text-gray-400 text-sm">–</span>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                />
+              </div>
+            )}
+
+            {preset !== "all" && (
+              <button
+                onClick={clearDateFilter}
+                className="text-sm text-red-500 hover:text-red-700 underline ml-1"
+              >
+                ล้าง
+              </button>
+            )}
           </div>
         </Card>
 
