@@ -11,16 +11,20 @@
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.0",
-    "next": "^16.1.6",
+    "axios": "^1.13.5",
+    "lucide-react": "^0.563.0",
+    "next": "16.1.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cypress": "^15.10.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.0",
     "tailwindcss": "^4",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { BookOpen, Book, Tag, AlertCircle, FileText, Plus, Edit, GraduationCap, List } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Loading from '@/components/ui/Loading';
@@ -33,7 +34,7 @@ export default function AdminDashboardPage() {
         coursesApi.getAll(),
         vocabularyApi.getAll(),
         reportsApi.getAll(),
-        labelTagsApi.getAll().catch(() => []), // Handle if table doesn't exist yet
+        labelTagsApi.getAll().catch(() => []),
       ]);
 
       setStats({
@@ -46,7 +47,6 @@ export default function AdminDashboardPage() {
 
       setCourses(coursesData.slice(0, 6));
 
-      // เรียงลำดับรายงานจากใหม่ไปเก่า และเอามาแค่ 5 อันล่าสุด
       const sortedReports = reportsData.sort((a: any, b: any) =>
         new Date(b.reported_at || b.created_at).getTime() - new Date(a.reported_at || a.created_at).getTime()
       );
@@ -167,66 +167,65 @@ export default function AdminDashboardPage() {
           </Card>
         </div>
 
-        {/* Quick Actions - Updated with 5 buttons including Label Tags */}
+        {/* Quick Actions */}
         <Card>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">การดำเนินการด่วน</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <Link href="/admin/vocabulary/add">
-              <Button fullWidth size="lg" className="h-full">
-                <span className="flex flex-col items-center py-2">
+              <button className="w-full h-full bg-gradient-to-br from-blue-200 to-blue-300 hover:from-blue-300 hover:to-blue-400 text-blue-800 rounded-2xl p-6 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-xl">
+                <div className="flex flex-col items-center">
                   <svg className="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-sm">เพิ่มคำศัพท์</span>
-                </span>
-              </Button>
+                  <span className="text-sm font-bold">เพิ่มคำศัพท์</span>
+                </div>
+              </button>
             </Link>
 
             <Link href="/admin/courses/add">
-              <Button fullWidth size="lg" variant="secondary" className="h-full">
-                <span className="flex flex-col items-center py-2">
+              <button className="w-full h-full bg-gradient-to-br from-purple-200 to-purple-300 hover:from-purple-300 hover:to-purple-400 text-purple-800 rounded-2xl p-6 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-xl">
+                <div className="flex flex-col items-center">
                   <svg className="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-sm">เพิ่มรายวิชา</span>
-                </span>
-              </Button>
+                  <span className="text-sm font-bold">เพิ่มรายวิชา</span>
+                </div>
+              </button>
             </Link>
 
-            {/* Add Label Tag Button */}
             <Link href="/admin/label">
-              <Button fullWidth size="lg" variant="secondary" className="h-full">
-                <span className="flex flex-col items-center py-2">
+              <button className="w-full h-full bg-gradient-to-br from-pink-200 to-pink-300 hover:from-pink-300 hover:to-pink-400 text-pink-800 rounded-2xl p-6 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-xl">
+                <div className="flex flex-col items-center">
                   <svg className="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-sm">เพิ่มหมวดหมู่</span>
-                </span>
-              </Button>
+                  <span className="text-sm font-bold">เพิ่มหมวดหมู่</span>
+                </div>
+              </button>
             </Link>
 
             <Link href={ROUTES.ADMIN_VOCABULARY || "/admin/vocabulary"}>
-              <Button fullWidth size="lg" variant="secondary" className="h-full">
-                <span className="flex flex-col items-center py-2">
+              <button className="w-full h-full bg-gradient-to-br from-green-200 to-green-300 hover:from-green-300 hover:to-green-400 text-green-800 rounded-2xl p-6 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-xl">
+                <div className="flex flex-col items-center">
                   <svg className="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
                     <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-sm">จัดการคำศัพท์</span>
-                </span>
-              </Button>
+                  <span className="text-sm font-bold">จัดการคำศัพท์</span>
+                </div>
+              </button>
             </Link>
 
             <Link href="/admin/reports">
-              <Button fullWidth size="lg" variant="secondary" className="h-full">
-                <span className="flex flex-col items-center py-2">
+              <button className="w-full h-full bg-gradient-to-br from-amber-200 to-amber-300 hover:from-amber-300 hover:to-amber-400 text-amber-900 rounded-2xl p-6 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-xl">
+                <div className="flex flex-col items-center">
                   <svg className="w-8 h-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                     <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-sm">รายงานทั้งหมด</span>
-                </span>
-              </Button>
+                  <span className="text-sm font-bold">รายงานทั้งหมด</span>
+                </div>
+              </button>
             </Link>
           </div>
         </Card>
@@ -234,7 +233,10 @@ export default function AdminDashboardPage() {
         {/* Recent Courses */}
         <Card>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">รายวิชาล่าสุด</h2>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <BookOpen className="w-6 h-6 text-blue-600" />
+              รายวิชาล่าสุด
+            </h2>
             <Link href={ROUTES.ADMIN_COURSES || "/admin/courses"} className="text-blue-600 hover:text-blue-700 text-base font-medium">
               ดูทั้งหมด →
             </Link>
@@ -246,16 +248,16 @@ export default function AdminDashboardPage() {
                 <Link
                   key={course.id}
                   href={`/admin/courses/${course.id}/edit`}
-                  className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 hover:shadow-md transition"
+                  className="border-2 border-blue-200 bg-blue-50 rounded-xl p-4 hover:border-blue-400 hover:shadow-lg transition-all duration-200 hover:scale-105"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 text-base line-clamp-1">
+                      <h3 className="font-bold text-gray-900 text-base line-clamp-1">
                         {course.name}
                       </h3>
                       <p className="text-sm text-gray-600">{course.code}</p>
                     </div>
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
@@ -275,7 +277,10 @@ export default function AdminDashboardPage() {
         {/* Recent Reports */}
         <Card>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">รายงานล่าสุด</h2>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <AlertCircle className="w-6 h-6 text-amber-600" />
+              รายงานล่าสุด
+            </h2>
             <Link href="/admin/reports" className="text-blue-600 hover:text-blue-700 text-base font-medium">
               ดูทั้งหมด →
             </Link>
@@ -286,25 +291,25 @@ export default function AdminDashboardPage() {
               {recentReports.map((report) => (
                 <div
                   key={report.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:border-blue-500 transition"
+                  className="border-2 border-purple-200 bg-purple-50 rounded-xl p-4 hover:border-purple-400 hover:shadow-lg transition-all duration-200"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${report.status === 'PENDING'
-                          ? 'bg-yellow-100 text-yellow-800'
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${report.status === 'PENDING'
+                          ? 'bg-amber-200 text-amber-800'
                           : report.status === 'RESOLVED'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-green-200 text-green-800'
+                            : 'bg-red-200 text-red-800'
                           }`}>
                           {report.status === 'PENDING' ? 'รอตรวจสอบ' :
                             report.status === 'RESOLVED' ? 'แก้ไขแล้ว' : 'ปฏิเสธ'}
                         </span>
 
-                        <span className="text-sm text-gray-600">{report.problem_type}</span>
+                        <span className="text-sm text-gray-600 font-medium">{report.problem_type}</span>
                       </div>
 
-                      <p className="text-base text-gray-900 font-medium mb-1">
+                      <p className="text-base text-gray-900 font-bold mb-1">
                         {report.vocabularies?.term_thai || 'คำศัพท์ (ถูกลบ)'}
                       </p>
 
@@ -319,7 +324,7 @@ export default function AdminDashboardPage() {
 
                     <Link
                       href={`/admin/reports`}
-                      className="ml-4 text-blue-600 hover:text-blue-700"
+                      className="ml-4 text-purple-600 hover:text-purple-800"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

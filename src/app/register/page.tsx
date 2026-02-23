@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { authApi } from '@/lib/api';
-import { auth } from '@/lib/auth';
+import { createClient } from '@/lib/supabase';
 import { ROUTES } from '@/lib/constants';
 
 export default function RegisterPage() {
@@ -16,7 +15,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'STUDENT',
+    role: 'MEMBER' as const,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -59,40 +58,48 @@ export default function RegisterPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) {
-      return;
-    }
-
+    if (!validate()) return;
     setLoading(true);
 
     try {
-      const { confirmPassword, ...registerData } = formData;
-      const response = await authApi.register(registerData);
+      // Step 1: Create user + DB profile via server route (uses service role to bypass RLS)
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          role: formData.role,
+        }),
+      });
 
-      // --- ส่วนที่แก้ไข ---
-      // ตรวจสอบว่ามี token และ user ส่งกลับมาหรือไม่ ก่อนที่จะบันทึก
-      if (response.token && response.user) {
-        auth.setToken(response.token);
-        // ใช้ as any เพื่อเลี่ยงปัญหา Type Mismatch ระหว่าง Supabase User กับ App User ชั่วคราว
-        auth.setUser(response.user as any);
+      const result = await res.json();
+      if (!result.ok) {
+        setErrors({ form: result.message || 'ลงทะเบียนไม่สำเร็จ' });
+        return;
+      }
 
-        alert('ลงทะเบียนสำเร็จ!');
-        
-        if (auth.isAdmin()) {
-          router.push(ROUTES.ADMIN_DASHBOARD);
-        } else {
-          router.push(ROUTES.COURSES);
-        }
-        router.refresh();
-      } else {
-        // กรณีที่ลงทะเบียนสำเร็จแต่ไม่ได้ Token ทันที (เช่น ระบบต้องรอ Verify Email)
+      // Step 2: Sign in immediately so they get a real session
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInError) {
+        // Account created but auto-login failed — send to login page
         alert('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
         router.push(ROUTES.LOGIN);
+        return;
       }
-      // -----------------
+
+      alert('ลงทะเบียนสำเร็จ!');
+      router.push(ROUTES.COURSES);
+      router.refresh();
 
     } catch (err: any) {
       setErrors({ form: err.message || 'ลงทะเบียนไม่สำเร็จ' });
@@ -178,22 +185,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               autoComplete="new-password"
             />
 
-            <div>
-              <label className="block text-base font-medium text-gray-700 mb-2">
-                ประเภทผู้ใช้ <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="STUDENT">นักศึกษา</option>
-                <option value="INTERPRETER">ล่ามภาษามือ</option>
-                <option value="LECTURER">อาจารย์ผู้สอน</option>
-                <option value="ADMIN">ผู้ดูแลระบบ</option>
-              </select>
-            </div>
+
 
             <Button
               type="submit"
@@ -227,7 +219,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* Info */}
         <div className="mt-6 text-center">
           <p className="text-purple-100 text-sm">
-            สำหรับนักศึกษาและบุคลากร มหาวิทยาลัยเชียงใหม่
+            สำหรับบุคคลภายนอกที่ต้องการเข้าถึงระบบ
           </p>
         </div>
       </div>

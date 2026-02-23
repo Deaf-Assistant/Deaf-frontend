@@ -1,22 +1,23 @@
 // src/types/index.ts
 
-export type UserRole = 'STUDENT' | 'ADMIN' | 'INTERPRETER' | 'LECTURER';
+export type UserRole = 'STUDENT' | 'MEMBER' | 'ADMIN' | 'INTERPRETER' | 'LECTURER';
 
 export interface User {
   id: string;
   email: string;
-  name: string; // ใน DB มี column name ใช่ไหม? หรือต้องดึงจาก metadata
+  name: string;
   role: UserRole;
 }
 
 export interface Course {
   id: string;
-  name: string;
   code: string;
+  name: string;
   description?: string;
-  image_url?: string; // แก้เป็น snake_case ตาม DB
-  created_at: string;
-  updated_at: string;
+  image_url?: string;
+  created_at?: string;
+  updated_at?: string;
+  visibility?: 'everyone' | 'login' | 'admin';
 }
 
 export interface Vocabulary {
@@ -27,7 +28,7 @@ export interface Vocabulary {
   image_url?: string;   // แก้เป็น snake_case
   video_url?: string;   // แก้เป็น snake_case
   course_id?: string;   // แก้เป็น snake_case
-  chapter_id?: string;  // แก้เป็น snake_case
+  chapter_id?: string;  
   created_by?: string;
   created_at: string;
   updated_at: string;

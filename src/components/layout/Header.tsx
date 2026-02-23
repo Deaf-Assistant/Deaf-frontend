@@ -1,279 +1,305 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
-import { auth } from '@/lib/auth';
-import { ROUTES } from '@/lib/constants';
-import Button from '@/components/ui/Button';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Home,
+  BookOpen,
+  AlertCircle,
+  Settings,
+  LogOut,
+  LogIn,
+  UserPlus,
+  Menu,
+  X,
+  Heart,
+} from "lucide-react";
+import { auth } from "@/lib/auth";
+import { createClient } from "@/lib/supabase";
+import { ROUTES } from "@/lib/constants";
+
+const supabase = createClient();
 
 export default function Header() {
-  const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // สร้างฟังก์ชันกลางสำหรับโหลดข้อมูล
-  const loadUser = () => {
-    setUser(auth.getUser());
+  const isActive = (path: string) => {
+    if (path === ROUTES.HOME) return pathname === ROUTES.HOME;
+    return pathname === path || pathname.startsWith(path + '/');
+  };
+
+const loadUser = async () => {
+    try {
+      // 1. โหลดข้อมูลจาก Local Storage มาแสดงก่อน เพื่อไม่ให้หน้าจอกระตุก
+      const localUser = auth.getUser();
+      if (localUser) {
+        setUser(localUser);
+      }
+
+      // 2. แอบไปดึงข้อมูลใหม่ล่าสุดจาก Database (Supabase) มาเช็คสิทธิ์ซ้ำ
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+        const fullUser = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: profile?.name || session.user.user_metadata?.name || 'User',
+            role: profile?.role || session.user.user_metadata?.role || 'STUDENT',
+            ...profile
+        };
+
+        // 3. ถ้าข้อมูลใหม่ไม่ตรงกับของเดิม ให้อัปเดต Local Storage และหน้าจอทันที
+        auth.setToken(session.access_token);
+        // @ts-ignore
+        auth.setUser(fullUser);
+        setUser(fullUser);
+      } else if (!localUser) {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Error loading user:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadUser(); // โหลดตอนเปลี่ยนหน้า
+    const loadUser = async () => {
+      try {
+        const localUser = auth.getUser();
+        if (localUser) {
+          setUser(localUser);
+        } else {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          if (session?.user) {
+            const { data: profile } = await supabase
+              .from("users")
+              .select("*")
+              .eq("id", session.user.id)
+              .single();
 
-    // เพิ่มการดักฟัง Event 'auth-change' ที่เราเขียนไว้ใน lib/auth.ts
-    window.addEventListener('auth-change', loadUser);
-    window.addEventListener('storage', loadUser); // กรณีเปิดหลาย Tab
+            const fullUser = {
+              id: session.user.id,
+              email: session.user.email,
+              name: profile?.name || session.user.user_metadata.name || "User",
+              role: profile?.role || "STUDENT",
+            };
 
-    return () => {
-      window.removeEventListener('auth-change', loadUser);
-      window.removeEventListener('storage', loadUser);
+            auth.setUser(fullUser as any);
+            setUser(fullUser);
+          }
+        }
+      } finally {
+        setIsLoading(false);
+      }
     };
-  }, [pathname]);
 
-  const handleLogout = () => {
+    loadUser();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     auth.logout();
-    router.push(ROUTES.LOGIN);
-    router.refresh();
+    window.location.href = ROUTES.LOGIN;
   };
 
-  const isActive = (path: string) => pathname === path;
-
   return (
-    <header className="bg-white shadow-md sticky top-0 z-40">
-      <div className="container mx-auto px-4">
+    <header className="bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 sticky top-0 z-40 shadow-lg">
+      <div className="w-full px-6">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href={ROUTES.HOME} className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
-              </svg>
+          <Link
+            href={ROUTES.HOME}
+            className="flex items-center space-x-3 shrink-0"
+          >
+            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center">
+              🦆
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Deaf Assistant</h1>
-              <p className="text-sm text-gray-600">ผู้ช่วยการเรียนรู้</p>
+            <div className="hidden sm:block">
+              <h1 className="text-2xl font-bold text-purple-700">DDCMU</h1>
+              <p className="text-sm text-purple-600">ผู้ช่วยการเรียนรู้ 📚</p>
             </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            <Link
-              href={ROUTES.HOME}
-              className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.HOME)
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100'
-                }`}
-            >
-              หน้าแรก
-            </Link>
-
-            <Link
-              href={ROUTES.COURSES}
-              className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.COURSES) || pathname.startsWith('/courses')
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100'
-                }`}
-            >
-              รายวิชา
-            </Link>
-
-            <Link
+          {/* Navigation */}
+          <nav className="hidden xl:flex flex-1 min-w-0 justify-center gap-1">
+            <NavItem href={ROUTES.HOME} active={isActive(ROUTES.HOME)}>
+              <Home className="w-5 h-5" /> หน้าแรก
+            </NavItem>
+            <NavItem href={ROUTES.COURSES} active={isActive(ROUTES.COURSES)}>
+              <BookOpen className="w-5 h-5" /> รายวิชา
+            </NavItem>
+            <NavItem
               href={ROUTES.VOCABULARY}
-              className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.VOCABULARY) || pathname.startsWith('/vocabulary')
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-100'
-                }`}
+              active={isActive(ROUTES.VOCABULARY)}
             >
-              คำศัพท์
-            </Link>
+              <span className="font-black text-sm">ABC</span> คำศัพท์
+            </NavItem>
 
-            {user && (
-              <Link
+            {!isLoading && user && (
+              <NavItem
                 href={ROUTES.FAVORITES}
-                className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.FAVORITES) 
-                  ? 'bg-yellow-100 text-yellow-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                active={isActive(ROUTES.FAVORITES)}
               >
-              รายการโปรด
-              </Link>
+                <Heart className="w-5 h-5" /> รายการโปรด
+              </NavItem>
             )}
 
-            {user && (
-              <Link
-                href={ROUTES.REPORT}
-                className={`px-4 py-2 rounded-lg text-base font-medium transition ${isActive(ROUTES.REPORT)
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-              >
-                รายงานปัญหา
-              </Link>
+            {!isLoading && user && (
+              <NavItem href={ROUTES.REPORT} active={isActive(ROUTES.REPORT)}>
+                <AlertCircle className="w-5 h-5" /> รายงานปัญหา
+              </NavItem>
             )}
 
-            {user && auth.isAdmin() && (
-              <Link
+            {!isLoading && user && auth.isAdmin() && (
+              <NavItem
                 href={ROUTES.ADMIN_DASHBOARD}
-                className={`px-4 py-2 rounded-lg text-base font-medium transition ${pathname.startsWith('/admin')
-                  ? 'bg-purple-100 text-purple-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                active={pathname.startsWith("/admin")}
+                admin
               >
-                จัดการระบบ
-              </Link>
+                <Settings className="w-5 h-5" /> จัดการระบบ
+              </NavItem>
             )}
           </nav>
 
-          {/* Desktop User section */}
-          <div className="hidden md:flex items-center space-x-3">
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  {/* ใช้ ? หลัง user และ user_metadata เสมอ */}
-                  <p className="text-base font-medium text-gray-900 leading-none">
-                    {user?.user_metadata?.name || user?.name || 'User'}
+          {/* User menu */}
+          <div className="hidden xl:flex items-center gap-3 shrink-0">
+            {isLoading ? null : user ? (
+              <>
+                <div className="text-right max-w-[140px]">
+                  <p className="font-bold text-purple-700 truncate">
+                    {user.name}
                   </p>
-                  <p className="text-xs text-gray-500 font-semibold uppercase mt-1">
-                    {user?.user_metadata?.role || user?.role || 'authenticated'}
+                  <p className="text-xs text-purple-600 uppercase truncate">
+                    {user.role}
                   </p>
                 </div>
-                <Button variant="secondary" onClick={handleLogout}>
-                  ออกจากระบบ
-                </Button>
-              </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-5 py-3 bg-rose-300 hover:bg-rose-400 text-rose-800 rounded-xl font-bold"
+                >
+                  <LogOut className="w-5 h-5" />
+                  ออก
+                </button>
+              </>
             ) : (
               <>
-                <Link href={ROUTES.LOGIN}>
-                  <Button variant="secondary">เข้าสู่ระบบ</Button>
+                <Link href={ROUTES.LOGIN} className="btn-white">
+                  <LogIn className="w-5 h-5" /> เข้าสู่ระบบ
                 </Link>
-                <Link href={ROUTES.REGISTER}>
-                  <Button>ลงทะเบียน</Button>
+                <Link href={ROUTES.REGISTER} className="btn-yellow">
+                  <UserPlus className="w-5 h-5" /> ลงทะเบียน
                 </Link>
               </>
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile button */}
           <button
+            className="xl:hidden p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100"
           >
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {isMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
-
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
-            <nav className="flex flex-col space-y-2">
-              <Link
-                href={ROUTES.HOME}
-                className={`px-4 py-3 rounded-lg text-base font-medium ${isActive(ROUTES.HOME) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                  }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                หน้าแรก
-              </Link>
-
-              <Link
-                href={ROUTES.COURSES}
-                className={`px-4 py-3 rounded-lg text-base font-medium ${pathname.startsWith('/courses') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                  }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                รายวิชา
-              </Link>
-
-              <Link
-                href={ROUTES.VOCABULARY}
-                className={`px-4 py-3 rounded-lg text-base font-medium ${pathname.startsWith('/vocabulary') ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                  }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                คำศัพท์
-              </Link>
-
-              {/* Favorites - Show for all logged-in users */}
-              {user && (
-                <Link
-                  href={ROUTES.FAVORITES}
-                  className={`px-4 py-3 rounded-lg text-base font-medium ${isActive(ROUTES.FAVORITES) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                    }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  รายการโปรด
-                </Link>
-              )}
-
-              {user && (
-                <Link
-                  href={ROUTES.REPORT}
-                  className={`px-4 py-3 rounded-lg text-base font-medium ${isActive(ROUTES.REPORT) ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
-                    }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  รายงานปัญหา
-                </Link>
-              )}
-
-              {user && auth.isAdmin() && (
-                <Link
-                  href={ROUTES.ADMIN_DASHBOARD}
-                  className={`px-4 py-3 rounded-lg text-base font-medium ${pathname.startsWith('/admin') ? 'bg-purple-100 text-purple-700' : 'text-gray-700'
-                    }`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  จัดการระบบ
-                </Link>
-              )}
-
-              <div className="pt-4 border-t border-gray-200">
-                {user ? (
-                  <>
-                    <div className="px-4 py-2 mb-3">
-                      <p className="text-base font-medium text-gray-900">{user.name}</p>
-                      <p className="text-sm text-gray-600">{user.role}</p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full px-4 py-3 bg-gray-200 text-gray-800 rounded-lg text-base font-medium"
-                    >
-                      ออกจากระบบ
-                    </button>
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <Link
-                      href={ROUTES.LOGIN}
-                      className="block px-4 py-3 bg-gray-200 text-gray-800 rounded-lg text-base font-medium text-center"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      เข้าสู่ระบบ
-                    </Link>
-                    <Link
-                      href={ROUTES.REGISTER}
-                      className="block px-4 py-3 bg-blue-600 text-white rounded-lg text-base font-medium text-center"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      ลงทะเบียน
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </nav>
-          </div>
-        )}
       </div>
+      {/* ✅ Mobile Menu (อยู่นอก flex) */}
+      {isMenuOpen && (
+        <div className="xl:hidden bg-white/95 backdrop-blur border-t border-purple-200">
+          <nav className="flex flex-col px-4 py-4 gap-2">
+            <MobileItem href={ROUTES.HOME}>หน้าแรก</MobileItem>
+            <MobileItem href={ROUTES.COURSES}>รายวิชา</MobileItem>
+            <MobileItem href={ROUTES.VOCABULARY}>คำศัพท์</MobileItem>
+
+            {user && (
+              <>
+                <MobileItem href={ROUTES.FAVORITES}>รายการโปรด</MobileItem>
+                <MobileItem href={ROUTES.REPORT}>รายงานปัญหา</MobileItem>
+              </>
+            )}
+
+            {user && auth.isAdmin() && (
+              <MobileItem href={ROUTES.ADMIN_DASHBOARD}>จัดการระบบ</MobileItem>
+            )}
+
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="mt-3 flex items-center justify-center gap-2 px-4 py-3 bg-rose-300 text-rose-800 rounded-xl font-bold"
+              >
+                <LogOut className="w-5 h-5" />
+                ออก
+              </button>
+            ) : (
+              <>
+                <Link href={ROUTES.LOGIN} className="btn-white">
+                  เข้าสู่ระบบ
+                </Link>
+                <Link href={ROUTES.REGISTER} className="btn-yellow">
+                  ลงทะเบียน
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
+  );
+}
+
+/* Helper */
+function NavItem({
+  href,
+  active,
+  children,
+  admin,
+}: {
+  href: string;
+  active: boolean;
+  children: any;
+  admin?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold whitespace-nowrap transition
+        ${
+          active
+            ? admin
+              ? "bg-amber-200 text-amber-800"
+              : "bg-white text-purple-600"
+            : "text-purple-700 hover:bg-white/40"
+        }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function MobileItem({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="px-4 py-3 rounded-xl font-bold text-purple-700 hover:bg-purple-100"
+    >
+      {children}
+    </Link>
   );
 }

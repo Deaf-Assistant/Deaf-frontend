@@ -9,6 +9,8 @@ import { reportsApi } from "@/lib/api";
 export default function AdminReportPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => {
     loadReports();
@@ -18,12 +20,11 @@ export default function AdminReportPage() {
     try {
       setLoading(true);
       const data = await reportsApi.getAll();
-      // เรียงจากใหม่ไปเก่า
       const sorted = data.sort((a: any, b: any) => 
-        // new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      new Date(b.reported_at).getTime() - new Date(a.reported_at).getTime()
+        new Date(b.reported_at).getTime() - new Date(a.reported_at).getTime()
       );
       setReports(sorted);
+      setSelectedIds([]); 
     } catch (error) {
       console.error("Failed to load reports:", error);
     } finally {
@@ -35,18 +36,87 @@ export default function AdminReportPage() {
     if (!confirm("ยืนยันการเปลี่ยนสถานะ?")) return;
     try {
       await reportsApi.updateStatus(id, status);
-      // อัปเดตหน้าจอโดยไม่ต้องโหลดใหม่
       setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r));
     } catch (error: any) {
       alert("เกิดข้อผิดพลาด: " + error.message);
     }
   };
 
+  const deleteReport = async (id: string) => {
+    if (!confirm("ยืนยันการลบรายการแจ้งปัญหานี้อย่างถาวร?")) return;
+    try {
+      if (reportsApi.delete) {
+        await reportsApi.delete(id);
+      } else if ((reportsApi as any).remove) {
+        await (reportsApi as any).remove(id);
+      } else {
+        alert("ยังไม่ได้สร้างฟังก์ชันลบใน reportsApi");
+        return;
+      }
+      
+      setReports(prev => prev.filter(r => r.id !== id));
+      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+    } catch (error: any) {
+      alert("เกิดข้อผิดพลาดในการลบ: " + error.message);
+    }
+  };
+
+  const deleteSelectedReports = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`ยืนยันการลบรายการแจ้งปัญหาจำนวน ${selectedIds.length} รายการอย่างถาวร?`)) return;
+    
+    try {
+      const deleteFn = reportsApi.delete || (reportsApi as any).remove;
+      if (!deleteFn) {
+        alert("ยังไม่ได้สร้างฟังก์ชันลบใน reportsApi");
+        return;
+      }
+
+      await Promise.all(selectedIds.map(id => deleteFn(id)));
+      
+      setReports(prev => prev.filter(r => !selectedIds.includes(r.id)));
+      setSelectedIds([]); 
+      alert("ลบรายการที่เลือกสำเร็จ");
+    } catch (error: any) {
+      alert("เกิดข้อผิดพลาดในการลบ: " + error.message);
+    }
+  };
+
+  // กรองเอารายการที่สามารถลบได้ (ที่ไม่ใช่ PENDING)
+  const deletableReports = reports.filter(r => r.status !== 'PENDING');
+  const isAllSelected = deletableReports.length > 0 && selectedIds.length === deletableReports.length;
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      // เลือกเฉพาะรายการที่จัดการแล้ว
+      setSelectedIds(deletableReports.map(r => r.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
   if (loading) return <Loading />;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">รายการแจ้งปัญหา</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl font-bold text-gray-900">รายการแจ้งปัญหา</h1>
+        
+        {selectedIds.length > 0 && (
+          <button
+            onClick={deleteSelectedReports}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition-colors flex items-center gap-2"
+          >
+            <span>🗑️ ลบรายการที่เลือก ({selectedIds.length})</span>
+          </button>
+        )}
+      </div>
       
       <Card>
         <div className="overflow-x-auto">
@@ -58,19 +128,36 @@ export default function AdminReportPage() {
                 <th className="px-4 py-3 font-medium text-gray-700">ปัญหา</th>
                 <th className="px-4 py-3 font-medium text-gray-700">รายละเอียด</th>
                 <th className="px-4 py-3 font-medium text-gray-700">สถานะ</th>
-                <th className="px-4 py-3 font-medium text-gray-700">จัดการ</th>
+                <th className="px-4 py-3 font-medium text-gray-700 w-44">
+                  <div className="flex items-center gap-2">
+                    <span>จัดการ</span>
+                    {/* ย้าย Checkbox เลือกทั้งหมด มาไว้ด้านขวา */}
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer disabled:opacity-50"
+                      onChange={handleSelectAll}
+                      checked={isAllSelected}
+                      disabled={deletableReports.length === 0}
+                      title="เลือกทั้งหมด"
+                    />
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {reports.length > 0 ? (
                 reports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50">
+                  <tr key={report.id} className={`hover:bg-gray-50 ${selectedIds.includes(report.id) ? 'bg-purple-50' : ''}`}>
                     <td className="px-4 py-3 text-gray-500">
-                      {/* {new Date(report.created_at).toLocaleDateString('th-TH')} */}
                       {new Date(report.reported_at).toLocaleDateString('th-TH')}
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900">
-                      {report.vocabularies?.term_thai || '-'}
+                      <Link
+                        href={`/admin/vocabulary/${report.vocabularies?.id}/edit`}
+                        className="hover:underline cursor-pointer"
+                      >
+                        {report.vocabularies?.term_thai || '-'}
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-gray-600">
                       {report.problem_type}
@@ -88,23 +175,41 @@ export default function AdminReportPage() {
                          report.status === 'RESOLVED' ? 'แก้ไขแล้ว' : 'ปฏิเสธ'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 space-x-2">
-                      {report.status === 'PENDING' && (
-                        <>
-                          <button 
-                            onClick={() => updateStatus(report.id, 'RESOLVED')}
-                            className="text-green-600 hover:text-green-800 text-xs font-medium border border-green-200 px-2 py-1 rounded hover:bg-green-50"
-                          >
-                            เสร็จสิ้น
-                          </button>
-                          <button 
-                            onClick={() => updateStatus(report.id, 'REJECTED')}
-                            className="text-red-600 hover:text-red-800 text-xs font-medium border border-red-200 px-2 py-1 rounded hover:bg-red-50"
-                          >
-                            ปฏิเสธ
-                          </button>
-                        </>
-                      )}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        {report.status === 'PENDING' ? (
+                          <>
+                            <button 
+                              onClick={() => updateStatus(report.id, 'RESOLVED')}
+                              className="text-green-600 hover:text-green-800 text-xs font-medium border border-green-200 px-2 py-1 rounded hover:bg-green-50"
+                            >
+                              เสร็จสิ้น
+                            </button>
+                            <button 
+                              onClick={() => updateStatus(report.id, 'REJECTED')}
+                              className="text-orange-600 hover:text-orange-800 text-xs font-medium border border-orange-200 px-2 py-1 rounded hover:bg-orange-50"
+                            >
+                              ปฏิเสธ
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            {/* ย้ายปุ่มลบมาไว้ด้านซ้าย และ Checkbox ไปด้านขวา */}
+                            <button 
+                              onClick={() => deleteReport(report.id)}
+                              className="text-red-600 hover:text-red-800 text-xs font-medium border border-red-200 px-3 py-1 rounded hover:bg-red-50 bg-white"
+                            >
+                              🗑️ ลบคำร้องเรียน
+                            </button>
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
+                              checked={selectedIds.includes(report.id)}
+                              onChange={() => handleSelectOne(report.id)}
+                            />
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
