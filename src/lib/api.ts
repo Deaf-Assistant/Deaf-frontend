@@ -449,7 +449,6 @@ export const reportsApi = {
 
 
 
-export type UserRole = "ADMIN" | "LECTURER" | "INTERPRETER" | "STUDENT" | "MEMBER";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Users API

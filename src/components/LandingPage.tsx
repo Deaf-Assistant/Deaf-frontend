@@ -225,7 +225,7 @@ export default function LandingPage() {
               <div className="hidden md:block absolute top-8 left-[22%] right-[22%] h-px bg-gradient-to-r from-indigo-200 via-violet-200 to-rose-200" />
 
               {[
-                { step: '01', icon: <UserPlus className="w-6 h-6 text-indigo-600" />, title: 'สร้างบัญชี', desc: 'ลงทะเบียนฟรี ไม่ต้องใช้บัตรเครดิต', color: 'bg-indigo-50 border-indigo-200' },
+                { step: '01', icon: <UserPlus className="w-6 h-6 text-indigo-600" />, title: 'สร้างบัญชี', desc: 'ลงทะเบียนฟรี', color: 'bg-indigo-50 border-indigo-200' },
                 { step: '02', icon: <BookMarked className="w-6 h-6 text-violet-600" />, title: 'เลือกรายวิชา', desc: 'เข้าถึงคำศัพท์และวิดีโอที่ต้องการ', color: 'bg-violet-50 border-violet-200' },
                 { step: '03', icon: <GraduationCap className="w-6 h-6 text-rose-500" />, title: 'ฝึกและทดสอบ', desc: 'ทำแบบทดสอบเพื่อวัดความเข้าใจ', color: 'bg-rose-50 border-rose-200' },
               ].map(({ step, icon, title, desc, color }) => (
