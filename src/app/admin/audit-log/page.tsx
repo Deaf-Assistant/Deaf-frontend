@@ -27,6 +27,16 @@ const ACTION_META: Record<string, { label: string; color: string; icon: string }
     DELETE_VOCAB: { label: "ลบคำศัพท์", color: "bg-rose-100 text-rose-700", icon: "📝" },
     ADD_VOCAB: { label: "เพิ่มคำศัพท์", color: "bg-green-100 text-green-700", icon: "✅" },
     EDIT_VOCAB: { label: "แก้ไขคำศัพท์", color: "bg-blue-100 text-blue-700", icon: "✏️" },
+    ADD_COURSE: { label: "เพิ่มวิชา", color: "bg-teal-100 text-teal-700", icon: "📚" },
+    EDIT_COURSE: { label: "แก้ไขวิชา", color: "bg-cyan-100 text-cyan-700", icon: "📝" },
+    ASSIGN_MEDIA: { label: "คืนค่าไฟล์", color: "bg-purple-100 text-purple-700", icon: "📎" },
+};
+
+const ROLE_BADGE: Record<string, string> = {
+    ADMIN: "bg-red-100 text-red-700 border border-red-200",
+    INTERPRETER: "bg-blue-100 text-blue-700 border border-blue-200",
+    LECTURER: "bg-green-100 text-green-700 border border-green-200",
+    MEMBER: "bg-gray-100 text-gray-600 border border-gray-200",
 };
 
 const ALL_ACTIONS = Object.keys(ACTION_META);
@@ -43,6 +53,7 @@ export default function AuditLogPage() {
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionFilter, setActionFilter] = useState("");
+    const [roleFilter, setRoleFilter] = useState("");
     const [search, setSearch] = useState("");
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
@@ -59,6 +70,7 @@ export default function AuditLogPage() {
             const { data: { session } } = await supabase.auth.getSession();
             const qs = new URLSearchParams({
                 ...(actionFilter && { action: actionFilter }),
+                ...(roleFilter && { role: roleFilter }),
                 ...(search && { search }),
                 ...(dateFrom && { dateFrom }),
                 ...(dateTo && { dateTo }),
@@ -96,7 +108,7 @@ export default function AuditLogPage() {
             <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
                 <div>
                     <h1 className="text-2xl font-bold mb-1">📝 Audit Log</h1>
-                    <p className="text-sm text-gray-500">บันทึกการดำเนินการของ Admin ทุกครั้ง</p>
+                    <p className="text-sm text-gray-500">บันทึกการดำเนินการของผู้ใช้ทุกบทบาท (Admin, Interpreter, Lecturer)</p>
                 </div>
                 {logs.length > 0 && (
                     <div className="flex gap-2">
@@ -133,6 +145,22 @@ export default function AuditLogPage() {
                         </select>
                     </div>
 
+                    {/* Role filter */}
+                    <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Role</label>
+                        <select
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        >
+                            <option value="">ทุก Role</option>
+                            <option value="ADMIN">ADMIN</option>
+                            <option value="INTERPRETER">INTERPRETER</option>
+                            <option value="LECTURER">LECTURER</option>
+                            <option value="MEMBER">MEMBER</option>
+                        </select>
+                    </div>
+
                     {/* Search */}
                     <div className="flex-1 min-w-[180px]">
                         <label className="text-xs text-gray-500 mb-1 block">ค้นหาชื่อ</label>
@@ -165,7 +193,7 @@ export default function AuditLogPage() {
                         ค้นหา
                     </button>
                     <button
-                        onClick={() => { setActionFilter(""); setSearch(""); setDateFrom(""); setDateTo(""); fetchLogs({ action: "", search: "", dateFrom: "", dateTo: "" }); }}
+                        onClick={() => { setActionFilter(""); setRoleFilter(""); setSearch(""); setDateFrom(""); setDateTo(""); fetchLogs({ action: "", role: "", search: "", dateFrom: "", dateTo: "" }); }}
                         className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition"
                     >
                         รีเซ็ต
@@ -219,7 +247,9 @@ export default function AuditLogPage() {
                                         <td className="p-3">
                                             <p className="font-medium text-gray-900">{log.actor_name ?? "—"}</p>
                                             {log.actor_role && (
-                                                <span className="text-xs text-gray-400">{log.actor_role}</span>
+                                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${ROLE_BADGE[log.actor_role] ?? "bg-gray-100 text-gray-500"}`}>
+                                                    {log.actor_role}
+                                                </span>
                                             )}
                                         </td>
                                         <td className="p-3">

@@ -8,6 +8,16 @@ import Link from "next/link";
 
 const supabase = createClient();
 
+type VocabOption = { id: string; term_thai: string; term_english: string | null };
+
+const MEDIA_FIELDS: { key: string; label: string; types: string[] }[] = [
+    { key: "image_url", label: "รูปภาพหลัก (image_url)", types: ["images"] },
+    { key: "image_url2", label: "รูปภาพที่ 2 (image_url2)", types: ["images"] },
+    { key: "image_url3", label: "รูปภาพที่ 3 (image_url3)", types: ["images"] },
+    { key: "video_url", label: "วิดีโอหลัก (video_url)", types: ["videos"] },
+    { key: "fingerspelling_video_url", label: "วิดีโอสะกดนิ้ว (fingerspelling_video_url)", types: ["videos"] },
+];
+
 type MediaFile = {
     name: string;
     bucket: string;
@@ -48,6 +58,14 @@ export default function AdminMediaPage() {
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [bulkDeleting, setBulkDeleting] = useState(false);
     const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+
+    // ── Assign orphan to vocabulary ───────────────────────────────
+    const [assignTarget, setAssignTarget] = useState<MediaFile | null>(null);
+    const [vocabList, setVocabList] = useState<VocabOption[]>([]);
+    const [vocabSearch, setVocabSearch] = useState("");
+    const [selectedVocabId, setSelectedVocabId] = useState("");
+    const [selectedField, setSelectedField] = useState("");
+    const [assigning, setAssigning] = useState(false);
 
     const currentUser = auth.getUser();
 
@@ -203,10 +221,79 @@ export default function AdminMediaPage() {
         }
     };
 
+    // ── Download ──────────────────────────────────────────────────
+    const handleDownload = async (file: MediaFile) => {
+        try {
+            const res = await fetch(file.publicUrl);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = file.name;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch {
+            // Fallback: open in new tab
+            window.open(file.publicUrl, "_blank");
+        }
+    };
+
+    // ── Assign orphan to vocabulary ───────────────────────────────
+    const openAssign = async (file: MediaFile) => {
+        setAssignTarget(file);
+        setVocabSearch("");
+        setSelectedVocabId("");
+        setSelectedField("");
+        if (vocabList.length === 0) {
+            const { data } = await supabase
+                .from("vocabularies")
+                .select("id, term_thai, term_english")
+                .order("term_thai");
+            setVocabList((data ?? []) as VocabOption[]);
+        }
+    };
+
+    const handleAssign = async () => {
+        if (!assignTarget || !selectedVocabId || !selectedField) return;
+        setAssigning(true);
+        try {
+            const { error } = await supabase
+                .from("vocabularies")
+                .update({ [selectedField]: assignTarget.publicUrl })
+                .eq("id", selectedVocabId);
+            if (error) throw error;
+            // Mark file as no longer orphaned in UI
+            const vocab = vocabList.find((v) => v.id === selectedVocabId);
+            setFiles((prev) =>
+                prev.map((f) =>
+                    f.publicUrl === assignTarget.publicUrl
+                        ? { ...f, isOrphaned: false, usedBy: vocab ? { id: vocab.id, term_thai: vocab.term_thai } : f.usedBy }
+                        : f
+                )
+            );
+            setAssignTarget(null);
+            alert(`ลิงก์ไฟล์ไปยัง "${vocab?.term_thai}" เรียบร้อยแล้ว`);
+        } catch (err: any) {
+            alert("เกิดข้อผิดพลาด: " + err.message);
+        } finally {
+            setAssigning(false);
+        }
+    };
+
     // ── Selected file info ────────────────────────────────────────
     const selectedFiles = files.filter((f) => selected.has(f.publicUrl));
     const selectedOrphanCount = selectedFiles.filter((f) => f.isOrphaned).length;
     const selectedLinkedCount = selectedFiles.filter((f) => !f.isOrphaned).length;
+
+    // Filtered fields for assign modal (match bucket type)
+    const compatibleFields = assignTarget
+        ? MEDIA_FIELDS.filter((mf) => mf.types.includes(assignTarget.bucket))
+        : [];
+    const filteredVocabList = vocabList.filter(
+        (v) =>
+            v.term_thai.toLowerCase().includes(vocabSearch.toLowerCase()) ||
+            (v.term_english ?? "").toLowerCase().includes(vocabSearch.toLowerCase())
+    );
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
@@ -310,10 +397,10 @@ export default function AdminMediaPage() {
                             <div
                                 key={file.publicUrl}
                                 className={`relative rounded-xl border overflow-hidden bg-white shadow-sm group transition-all ${isSelected
-                                        ? "border-indigo-500 ring-2 ring-indigo-400"
-                                        : file.isOrphaned
-                                            ? "border-red-300 ring-1 ring-red-200"
-                                            : "border-gray-200"
+                                    ? "border-indigo-500 ring-2 ring-indigo-400"
+                                    : file.isOrphaned
+                                        ? "border-red-300 ring-1 ring-red-200"
+                                        : "border-gray-200"
                                     }`}
                             >
                                 {/* Checkbox overlay */}
@@ -333,7 +420,7 @@ export default function AdminMediaPage() {
                                 {/* Orphan badge */}
                                 {file.isOrphaned && (
                                     <div className="absolute top-2 left-8 z-10 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                                        ORPHAN
+                                        ไม่ได้ใช้งาน
                                     </div>
                                 )}
 
@@ -395,18 +482,38 @@ export default function AdminMediaPage() {
                                 </div>
 
                                 {/* Per-card Actions */}
-                                <div className="flex border-t">
+                                <div className="flex flex-wrap border-t divide-x">
+                                    {/* Download */}
+                                    <button
+                                        onClick={() => handleDownload(file)}
+                                        className="flex-1 py-1.5 text-xs text-green-600 hover:bg-green-50 transition min-w-[50px]"
+                                        title="ดาวน์โหลด"
+                                    >
+                                        ⬇️ ดาวน์โหลด
+                                    </button>
+                                    {/* Assign (orphans only) */}
+                                    {file.isOrphaned && (
+                                        <button
+                                            onClick={() => openAssign(file)}
+                                            className="flex-1 py-1.5 text-xs text-amber-600 hover:bg-amber-50 transition min-w-[50px]"
+                                            title="เพิ่มในคำศัพท์"
+                                        >
+                                            📎 ใช้ในคำศัพท์
+                                        </button>
+                                    )}
+                                    {/* Replace */}
                                     <button
                                         onClick={() => { setReplaceTarget(file); setReplaceFile(null); }}
-                                        className="flex-1 py-1.5 text-xs text-indigo-600 hover:bg-indigo-50 transition"
+                                        className="flex-1 py-1.5 text-xs text-indigo-600 hover:bg-indigo-50 transition min-w-[50px]"
                                     >
-                                        แทนที่
+                                        🔄 แทนที่
                                     </button>
+                                    {/* Delete */}
                                     <button
                                         onClick={() => setDeleteTarget(file)}
-                                        className="flex-1 py-1.5 text-xs text-red-500 hover:bg-red-50 border-l transition"
+                                        className="flex-1 py-1.5 text-xs text-red-500 hover:bg-red-50 transition min-w-[50px]"
                                     >
-                                        ลบ
+                                        🗑️ ลบ
                                     </button>
                                 </div>
                             </div>
@@ -579,6 +686,85 @@ export default function AdminMediaPage() {
                                 className="flex-1 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition"
                             >
                                 {replacing ? "กำลังแทนที่..." : "ยืนยันแทนที่"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ── Assign Orphan to Vocabulary Modal ── */}
+            {assignTarget && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl shadow-xl p-6 max-w-lg w-full mx-4 flex flex-col gap-4">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <h2 className="text-lg font-bold">📎 เพิ่มไฟล์ในคำศัพท์</h2>
+                                <p className="text-xs text-gray-500 mt-0.5 font-mono truncate max-w-xs">{assignTarget.name}</p>
+                            </div>
+                            {assignTarget.bucket === "images" ? (
+                                <img src={assignTarget.publicUrl} alt="" className="w-14 h-14 object-cover rounded-lg border shrink-0" />
+                            ) : (
+                                <div className="w-14 h-14 bg-gray-100 rounded-lg border flex items-center justify-center text-2xl shrink-0">🎬</div>
+                            )}
+                        </div>
+
+                        {/* Field picker */}
+                        <div>
+                            <label className="text-sm font-semibold text-gray-700 block mb-1">ฟิลด์ที่จะใช้</label>
+                            <select
+                                value={selectedField}
+                                onChange={(e) => setSelectedField(e.target.value)}
+                                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            >
+                                <option value="">-- เลือกฟิลด์ --</option>
+                                {compatibleFields.map((mf) => (
+                                    <option key={mf.key} value={mf.key}>{mf.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Vocab search + list */}
+                        <div>
+                            <label className="text-sm font-semibold text-gray-700 block mb-1">เลือกคำศัพท์</label>
+                            <input
+                                type="text"
+                                placeholder="ค้นหาคำศัพท์..."
+                                value={vocabSearch}
+                                onChange={(e) => setVocabSearch(e.target.value)}
+                                className="w-full border rounded-lg px-3 py-1.5 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            />
+                            <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+                                {filteredVocabList.length === 0 ? (
+                                    <p className="text-center text-gray-400 py-6 text-sm">ไม่พบคำศัพท์</p>
+                                ) : filteredVocabList.map((v) => (
+                                    <button
+                                        key={v.id}
+                                        onClick={() => setSelectedVocabId(v.id)}
+                                        className={`w-full text-left px-3 py-2 text-sm transition hover:bg-amber-50 ${selectedVocabId === v.id ? "bg-amber-100 font-semibold" : ""}`}
+                                    >
+                                        {v.term_thai}
+                                        {v.term_english && (
+                                            <span className="text-gray-400 ml-1 font-normal">({v.term_english})</span>
+                                        )}
+                                        {selectedVocabId === v.id && <span className="float-right text-amber-600">✓</span>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setAssignTarget(null)}
+                                disabled={assigning}
+                                className="flex-1 py-2 rounded-lg border text-gray-600 hover:bg-gray-50 transition"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={handleAssign}
+                                disabled={assigning || !selectedVocabId || !selectedField}
+                                className="flex-1 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 transition font-semibold"
+                            >
+                                {assigning ? "กำลังบันทึก..." : "บันทึก"}
                             </button>
                         </div>
                     </div>

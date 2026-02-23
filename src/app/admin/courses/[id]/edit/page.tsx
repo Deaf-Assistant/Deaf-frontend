@@ -9,6 +9,7 @@ import Loading from "@/components/ui/Loading";
 import FileUpload from "@/components/features/FileUpload";
 import { coursesApi, chaptersApi, uploadApi } from "@/lib/api";
 import { FILE_LIMITS } from "@/lib/constants";
+import { logAction } from "@/lib/audit-client";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -100,6 +101,9 @@ export default function EditCoursePage() {
       await coursesApi.update(courseId, {
         ...formData,
         image_url: imageUrl || null,
+      });
+      logAction("EDIT_COURSE", "course", courseId, formData.name, {
+        code: formData.code,
       });
       toast.success("บันทึกข้อมูลรายวิชาสำเร็จ");
       // ไม่ต้อง redirect เพื่อให้จัดการบทเรียนต่อได้

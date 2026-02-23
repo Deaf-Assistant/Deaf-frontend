@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import VocabularyForm from "@/components/features/VocabularyForm";
 import { vocabularyApi } from "@/lib/api";
 import { labelTagsApi } from "@/lib/label_api";
+import { logAction } from "@/lib/audit-client";
 
 // นำเข้า react-toastify
 import { ToastContainer, toast } from "react-toastify";
@@ -31,7 +32,7 @@ export default function AddVocabularyPage() {
     }
   }, [searchParams]);
 
-  
+
 
   const onSubmit = async (formData: any) => {
     setLoading(true);
@@ -62,6 +63,12 @@ export default function AddVocabularyPage() {
       setLastCourseChapter({
         courseId: formData.courseId,
         chapterId: formData.chapterId,
+      });
+
+      // Audit log
+      logAction("ADD_VOCAB", "vocabulary", newVocab?.id ?? "", formData.termThai, {
+        term_english: formData.termEnglish,
+        course_id: formData.courseId,
       });
 
       // Reset ฟอร์ม

@@ -7,6 +7,7 @@ import Loading from "@/components/ui/Loading";
 import VocabularyForm from "@/components/features/VocabularyForm";
 import { vocabularyApi } from "@/lib/api";
 import { labelTagsApi } from "@/lib/label_api";
+import { logAction } from "@/lib/audit-client";
 
 export default function EditVocabularyPage() {
   const { id } = useParams();
@@ -53,6 +54,11 @@ export default function EditVocabularyPage() {
       };
 
       await vocabularyApi.update(id as string, payload);
+
+      // Audit log
+      logAction("EDIT_VOCAB", "vocabulary", id as string, payload.term_thai, {
+        course_id: payload.course_id,
+      });
 
       // อัพเดทหมวดหมู่: ลบของเก่าและเพิ่มใหม่
       if (formData.categoryIds) {
