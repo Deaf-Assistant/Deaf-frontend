@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
 
         const { searchParams } = new URL(req.url);
         const action = searchParams.get("action") ?? "";
+        const role = searchParams.get("role") ?? "";
         const search = searchParams.get("search") ?? "";
         const dateFrom = searchParams.get("dateFrom") ?? "";
         const dateTo = searchParams.get("dateTo") ?? "";
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
             .limit(limit);
 
         if (action) query = query.eq("action", action);
+        if (role) query = query.eq("actor_role", role);
         if (search) query = query.or(`actor_name.ilike.%${search}%,entity_name.ilike.%${search}%`);
         if (dateFrom) query = query.gte("created_at", dateFrom);
         if (dateTo) query = query.lte("created_at", dateTo + "T23:59:59");

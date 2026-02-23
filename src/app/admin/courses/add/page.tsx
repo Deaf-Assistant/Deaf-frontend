@@ -8,6 +8,7 @@ import Input from "@/components/ui/Input";
 import FileUpload from "@/components/features/FileUpload";
 import { coursesApi, uploadApi } from "@/lib/api";
 import { FILE_LIMITS } from "@/lib/constants";
+import { logAction } from "@/lib/audit-client";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -36,47 +37,51 @@ export default function AddCoursePage() {
     reader.readAsDataURL(file);
   };
 
-const onSubmit = async () => {
-  // 🔒 กันกดย้ำทันที
-  if (submitLockRef.current) return;
-  submitLockRef.current = true;
+  const onSubmit = async () => {
+    // 🔒 กันกดย้ำทันที
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
 
-  if (!formData.code || !formData.name) {
-    toast.warning("กรุณากรอกข้อมูลให้ครบ");
-    submitLockRef.current = false; // ❗ ปลดล็อก เพราะยังไม่ได้ submit จริง
-    return;
-  }
-
-  setLoading(true);
-  try {
-    let imageUrl = formData.image_url;
-
-    if (imageFile) {
-      const { url } = await uploadApi.uploadFile(imageFile, "image");
-      imageUrl = url;
+    if (!formData.code || !formData.name) {
+      toast.warning("กรุณากรอกข้อมูลให้ครบ");
+      submitLockRef.current = false; // ❗ ปลดล็อก เพราะยังไม่ได้ submit จริง
+      return;
     }
 
-    await coursesApi.create({
-      ...formData,
-      image_url: imageUrl || null,
-    });
+    setLoading(true);
+    try {
+      let imageUrl = formData.image_url;
 
-    toast.success("เพิ่มรายวิชาสำเร็จ");
+      if (imageFile) {
+        const { url } = await uploadApi.uploadFile(imageFile, "image");
+        imageUrl = url;
+      }
 
-    // ✅ สำเร็จแล้ว → ไม่ต้องปลดล็อก (กันกดซ้ำถาวร)
-    setTimeout(() => router.push("/admin/courses"), 1000);
-  } catch (error: any) {
-    console.error(error);
-    toast.error(
-      "เกิดข้อผิดพลาด: " + (error.message || "ไม่สามารถบันทึกได้"),
-    );
+      const newCourse = await coursesApi.create({
+        ...formData,
+        image_url: imageUrl || null,
+      });
 
-    // ❗ error เท่านั้นที่ปลดล็อก
-    submitLockRef.current = false;
-  } finally {
-    setLoading(false);
-  }
-};
+      logAction("ADD_COURSE", "course", newCourse?.id ?? "", formData.name, {
+        code: formData.code,
+      });
+
+      toast.success("เพิ่มรายวิชาสำเร็จ");
+
+      // ✅ สำเร็จแล้ว → ไม่ต้องปลดล็อก (กันกดซ้ำถาวร)
+      setTimeout(() => router.push("/admin/courses"), 1000);
+    } catch (error: any) {
+      console.error(error);
+      toast.error(
+        "เกิดข้อผิดพลาด: " + (error.message || "ไม่สามารถบันทึกได้"),
+      );
+
+      // ❗ error เท่านั้นที่ปลดล็อก
+      submitLockRef.current = false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>

@@ -7,6 +7,25 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Loading from "@/components/ui/Loading";
 import { vocabularyApi, coursesApi, chaptersApi } from "@/lib/api";
+import { createClient } from "@/lib/supabase";
+import { logAction } from "@/lib/audit-client";
+
+const supabase = createClient();
+
+async function deleteVocabWithMedia(ids: string[]) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch("/api/admin/delete-vocabulary", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session?.access_token ?? ""}`,
+    },
+    body: JSON.stringify({ ids }),
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.message ?? "ลบไม่สำเร็จ");
+  return data;
+}
 
 export default function AdminVocabularyPage() {
   const router = useRouter();
@@ -138,13 +157,13 @@ export default function AdminVocabularyPage() {
     });
   };
 
-  // --- ฟังก์ชันลบหลายรายการ ---
+  // --- ฟังก์ชันลบหลายรายการ (พร้อมลบไฟล์ใน Storage) ---
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
 
     if (
       !confirm(
-        `คุณต้องการลบคำศัพท์ที่เลือกจำนวน ${selectedIds.length} รายการใช่หรือไม่?`
+        `คุณต้องการลบคำศัพท์ที่เลือกจำนวน ${selectedIds.length} รายการใช่หรือไม่?\nรูปภาพและวิดีโอที่เชื่อมอยู่จะถูกลบออกจาก Storage ด้วย`
       )
     ) {
       return;
@@ -152,12 +171,18 @@ export default function AdminVocabularyPage() {
 
     try {
       setIsDeleting(true);
-      await Promise.all(selectedIds.map((id) => vocabularyApi.delete(id)));
+      await deleteVocabWithMedia(selectedIds);
+
+      // Audit log each deleted vocab
+      const deletedVocabs = vocabularies.filter((v) => selectedIds.includes(v.id));
+      deletedVocabs.forEach((v) => {
+        logAction("DELETE_VOCAB", "vocabulary", v.id, v.term_thai);
+      });
 
       setVocabularies((prev) => prev.filter((v) => !selectedIds.includes(v.id)));
       setSelectedIds([]);
       router.refresh();
-      alert("ลบข้อมูลสำเร็จเรียบร้อยแล้ว");
+      alert("ลบข้อมูลและไฟล์สื่อสำเร็จเรียบร้อยแล้ว");
     } catch (error: any) {
       console.error(error);
       alert("เกิดข้อผิดพลาดในการลบ: " + error.message);
@@ -167,9 +192,11 @@ export default function AdminVocabularyPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("ต้องการลบคำศัพท์นี้ใช่ไหม?")) return;
+    if (!confirm("ต้องการลบคำศัพท์นี้ใช่ไหม?\nรูปภาพและวิดีโอที่เชื่อมอยู่จะถูกลบออกจาก Storage ด้วย")) return;
     try {
-      await vocabularyApi.delete(id);
+      await deleteVocabWithMedia([id]);
+      const deleted = vocabularies.find((v) => v.id === id);
+      if (deleted) logAction("DELETE_VOCAB", "vocabulary", id, deleted.term_thai);
       setVocabularies((prev) => prev.filter((v) => v.id !== id));
       setSelectedIds((prev) => prev.filter((item) => item !== id));
       router.refresh();
@@ -186,11 +213,11 @@ export default function AdminVocabularyPage() {
         <h1 className="text-2xl font-bold">
           จัดการคำศัพท์ ({filteredVocabs.length})
         </h1>
-        
+
         <div className="flex gap-2">
           {selectedIds.length > 0 && (
-            <Button 
-              variant="danger" 
+            <Button
+              variant="danger"
               onClick={handleBulkDelete}
               disabled={isDeleting}
             >
@@ -201,9 +228,8 @@ export default function AdminVocabularyPage() {
           <Link
             href={
               selectedCourse
-                ? `/admin/vocabulary/add?courseId=${selectedCourse}${
-                    selectedChapter ? `&chapterId=${selectedChapter}` : ""
-                  }`
+                ? `/admin/vocabulary/add?courseId=${selectedCourse}${selectedChapter ? `&chapterId=${selectedChapter}` : ""
+                }`
                 : "/admin/vocabulary/add"
             }
           >
@@ -294,9 +320,9 @@ export default function AdminVocabularyPage() {
                 </th>
                 {/* ✨ ย้าย Checkbox Select All มาไว้ Header ขวาสุด */}
                 <th className="px-6 py-3 text-sm font-semibold text-gray-700 text-right min-w-[160px]">
-                   <div className="flex items-center justify-end gap-2">
-                     <span className="text-xs text-gray-500 font-normal">เลือกทั้งหมด</span>
-                     <input
+                  <div className="flex items-center justify-end gap-2">
+                    <span className="text-xs text-gray-500 font-normal">เลือกทั้งหมด</span>
+                    <input
                       type="checkbox"
                       className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       onChange={handleSelectAll}
@@ -305,7 +331,7 @@ export default function AdminVocabularyPage() {
                         selectedIds.length === filteredVocabs.length
                       }
                     />
-                   </div>
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -322,9 +348,8 @@ export default function AdminVocabularyPage() {
                   return (
                     <tr
                       key={vocab.id}
-                      className={`hover:bg-gray-50 transition ${
-                        isSelected ? "bg-blue-50" : ""
-                      }`}
+                      className={`hover:bg-gray-50 transition ${isSelected ? "bg-blue-50" : ""
+                        }`}
                     >
                       <td className="px-6 py-4 font-medium text-gray-900">
                         {vocab.term_thai}
@@ -340,37 +365,37 @@ export default function AdminVocabularyPage() {
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {vocab.chapters?.name || "-"}
                       </td>
-                      
+
                       {/* ✨ Column จัดการ: รวมปุ่ม Checkbox ไว้ที่นี่ */}
                       <td className="px-6 py-4 text-right">
-                         <div className="flex items-center justify-end gap-3">
-                           {/* ✨ Logic: ถ้าไม่ได้เลือก (isSelected = false) ให้โชว์ปุ่ม */}
-                           {/* แต่ถ้าเลือกอยู่ (isSelected = true) ให้ซ่อนปุ่ม เพื่อลดรกตา */}
-                           {!isSelected && (
-                             <>
-                                <Link href={`/admin/vocabulary/${vocab.id}/edit`}>
-                                  <Button variant="secondary" size="sm">
-                                    แก้ไข
-                                  </Button>
-                                </Link>
-                                <Button
-                                  variant="danger"
-                                  size="sm"
-                                  onClick={() => handleDelete(vocab.id)}
-                                >
-                                  ลบ
+                        <div className="flex items-center justify-end gap-3">
+                          {/* ✨ Logic: ถ้าไม่ได้เลือก (isSelected = false) ให้โชว์ปุ่ม */}
+                          {/* แต่ถ้าเลือกอยู่ (isSelected = true) ให้ซ่อนปุ่ม เพื่อลดรกตา */}
+                          {!isSelected && (
+                            <>
+                              <Link href={`/admin/vocabulary/${vocab.id}/edit`}>
+                                <Button variant="secondary" size="sm">
+                                  แก้ไข
                                 </Button>
-                             </>
-                           )}
+                              </Link>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleDelete(vocab.id)}
+                              >
+                                ลบ
+                              </Button>
+                            </>
+                          )}
 
-                           {/* Checkbox ประจำแถว */}
-                           <input
-                              type="checkbox"
-                              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                              checked={isSelected}
-                              onChange={() => handleSelectOne(vocab.id)}
-                            />
-                         </div>
+                          {/* Checkbox ประจำแถว */}
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            checked={isSelected}
+                            onChange={() => handleSelectOne(vocab.id)}
+                          />
+                        </div>
                       </td>
                     </tr>
                   );
