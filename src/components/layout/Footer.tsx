@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="mx-auto px-4 py-12 flex flex-col items-center text-center max-w-3xl">
 
         {/* About */}
-        <h3 className="text-2xl font-bold mb-4">Deaf Assistant</h3>
+        <h3 className="text-2xl font-bold mb-4">Deaf Dictionary for Chiang Mai University</h3>
         <p className="text-gray-400 text-base leading-relaxed mb-8">
           ระบบช่วยสนับสนุนการเรียนการสอนสำหรับนักศึกษาผู้บกพร่องทางการได้ยิน
         </p>

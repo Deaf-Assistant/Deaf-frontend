@@ -291,8 +291,6 @@ export const reportsApi = {
 };
 
 
-
-export type UserRole = "ADMIN" | "LECTURER" | "INTERPRETER" | "STUDENT" | "MEMBER";
 // --- Users API (เพิ่มใหม่สำหรับ Admin) ---
 export const usersApi = {
   async getAll() {
