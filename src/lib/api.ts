@@ -8,6 +8,7 @@ const supabase = createClient();
 
 // --- Auth API (แก้ไขให้ตรงกับ Frontend) ---
 export const authApi = {
+
   async login(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
@@ -33,8 +34,18 @@ export const authApi = {
   },
 
   // รับค่าเป็น Object ตามที่ RegisterPage ส่งมา
-  async register(data: { email: string; password: string; name: string; role: string }) {
-    const { email, password, name, role } = data;
+async register(data: { email: string; password: string; name: string; role: string }) {
+    // เปลี่ยนจาก const เป็น let เพื่อให้แก้ไขค่า role ได้
+    let { email, password, name, role } = data; 
+    
+    // 👇 --- เพิ่ม Logic กำหนด Default Role สำหรับคนนอกตรงนี้ --- 👇
+    const isCmuMail = email.toLowerCase().endsWith('@cmu.ac.th');
+    
+    // ถ้าไม่มีการส่ง Role มา หรือส่งมาเป็น STUDENT แต่ใช้อีเมลนอก ให้บังคับเป็น MEMBER
+    if (!role || (role === 'STUDENT' && !isCmuMail)) {
+      role = isCmuMail ? 'STUDENT' : 'MEMBER';
+    }
+    // 👆 ------------------------------------------------ 👆
 
     // 1. สมัครสมาชิก
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -46,16 +57,16 @@ export const authApi = {
 
     // 2. บันทึกลงตาราง users
     if (authData.user) {
-      const { error: profileError } = await supabase.from('users').insert({
-        id: authData.user.id,
-        email: email,
-        name: name,
-        role: role
-      });
-      if (profileError) console.error('Error creating profile:', profileError);
+        const { error: profileError } = await supabase.from('users').insert({
+            id: authData.user.id,
+            email: email,
+            name: name,
+            role: role
+        });
+        if (profileError) console.error('Error creating profile:', profileError);
     }
 
-    // แปลงค่า return
+   
     return {
       user: authData.user,
       token: authData.session?.access_token
@@ -88,6 +99,7 @@ export const authApi = {
   }
 
 };
+
 
 // --- Courses API (ที่หายไป เติมให้แล้วครับ) ---
 export const coursesApi = {
@@ -155,9 +167,10 @@ export const coursesApi = {
 // --- Vocabulary API ---
 export const vocabularyApi = {
   async getAll(courseId?: string) {
-    let query = supabase.from('vocabularies').select('*, courses(name), chapters(name)');
-
-    // ถ้ามีการส่ง courseId มาให้กรองด้วย (ใช้ในหน้า CoursesPage ที่นายพยายามแก้)
+    // 🔴 แก้แล้ว: เติม , visibility ลงไป
+    let query = supabase.from('vocabularies').select('*, courses(name, visibility), chapters(name)');
+    
+    // ถ้ามีการส่ง courseId มาให้กรองด้วย
     if (courseId) {
       query = query.eq('course_id', courseId);
     }
@@ -171,21 +184,22 @@ export const vocabularyApi = {
     const { data, error } = await supabase
       .from('vocabularies')
       .select(`
-      *,
-      courses (name),
-      chapters (name)
-    `)
+        *,
+        courses (name, visibility), 
+        chapters (name)
+      `)
       .eq('id', id)
       .single();
-
+    
     if (error) throw error;
     return data;
   },
 
   async search(keyword: string, courseId?: string) {
+   
     let query = supabase
       .from('vocabularies')
-      .select('*, courses(name)')
+      .select('*, courses(name, visibility)')
       .ilike('term_thai', `%${keyword}%`);
 
     if (courseId) {
@@ -260,10 +274,25 @@ export const reportsApi = {
     }
 
     return data;
-  }
+  },
+
+  async delete(id: string) {
+        const { error } = await supabase
+            .from('reports')       
+            .delete()            
+            .eq('id', id);        
+
+        if (error) {
+            console.error("Delete Report Error:", error);
+            throw error;
+        }
+        return true;
+    }
 };
 
 
+
+export type UserRole = "ADMIN" | "LECTURER" | "INTERPRETER" | "STUDENT" | "MEMBER";
 // --- Users API (เพิ่มใหม่สำหรับ Admin) ---
 export const usersApi = {
   async getAll() {

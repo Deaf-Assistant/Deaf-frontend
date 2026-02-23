@@ -50,8 +50,7 @@ export default function CoursesPage() {
         return true;
       }
 
-      // Fallback for normal users (should behave like student mostly)
-      if (currentUser) {
+      if (currentUser?.role === 'STUDENT') {
         return visibility === 'everyone' || visibility === 'login';
       }
 
