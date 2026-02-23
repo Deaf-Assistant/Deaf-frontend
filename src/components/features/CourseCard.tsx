@@ -73,7 +73,7 @@ export default function CourseCard({ course, vocabularyCount, onToggleVisibility
             }`}
         >
           {(course.visibility || 'everyone') === 'everyone' ? 'สาธารณะ' :
-            course.visibility === 'login' ? 'สมาชิก' : 'ผู้ดูแล'}
+            course.visibility === 'login' ? 'นักศึกษา' : 'ผู้ดูแล'}
         </button>
       )}
 
