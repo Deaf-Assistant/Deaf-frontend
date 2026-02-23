@@ -1,16 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
 import Loading from "@/components/ui/Loading";
 import { reportsApi } from "@/lib/api";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function AdminReportPage() {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  // ── Confirmation modal state ───────────────────────────────────
+  const [confirmModal, setConfirmModal] = useState<{ message: string } | null>(null);
+  const resolveRef = useRef<((ok: boolean) => void) | null>(null);
+
+  /** Replaces window.confirm() with a styled in-page modal */
+  const showConfirm = (message: string): Promise<boolean> =>
+    new Promise((resolve) => {
+      resolveRef.current = resolve;
+      setConfirmModal({ message });
+    });
+
+  const handleConfirmOk = () => { setConfirmModal(null); resolveRef.current?.(true); };
+  const handleConfirmCancel = () => { setConfirmModal(null); resolveRef.current?.(false); };
+
+  const toggleExpand = (id: string) =>
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   useEffect(() => {
     loadReports();
@@ -20,11 +43,11 @@ export default function AdminReportPage() {
     try {
       setLoading(true);
       const data = await reportsApi.getAll();
-      const sorted = data.sort((a: any, b: any) => 
+      const sorted = data.sort((a: any, b: any) =>
         new Date(b.reported_at).getTime() - new Date(a.reported_at).getTime()
       );
       setReports(sorted);
-      setSelectedIds([]); 
+      setSelectedIds([]);
     } catch (error) {
       console.error("Failed to load reports:", error);
     } finally {
@@ -33,52 +56,53 @@ export default function AdminReportPage() {
   };
 
   const updateStatus = async (id: string, status: string) => {
-    if (!confirm("ยืนยันการเปลี่ยนสถานะ?")) return;
+    const ok = await showConfirm("ยืนยันการเปลี่ยนสถานะ?");
+    if (!ok) return;
     try {
       await reportsApi.updateStatus(id, status);
       setReports(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+      toast.success("อัปเดตสถานะสำเร็จ");
     } catch (error: any) {
-      alert("เกิดข้อผิดพลาด: " + error.message);
+      toast.error("เกิดข้อผิดพลาด: " + error.message);
     }
   };
 
   const deleteReport = async (id: string) => {
-    if (!confirm("ยืนยันการลบรายการแจ้งปัญหานี้อย่างถาวร?")) return;
+    const ok = await showConfirm("ยืนยันการลบรายการแจ้ปัญหานี้อย่างถาวร?");
+    if (!ok) return;
     try {
       if (reportsApi.delete) {
         await reportsApi.delete(id);
       } else if ((reportsApi as any).remove) {
         await (reportsApi as any).remove(id);
       } else {
-        alert("ยังไม่ได้สร้างฟังก์ชันลบใน reportsApi");
+        toast.error("ยังไม่ได้สร้างฟังก์ชันลบใน reportsApi");
         return;
       }
-      
       setReports(prev => prev.filter(r => r.id !== id));
       setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+      toast.success("ลบคำร้องเรียนสำเร็จ");
     } catch (error: any) {
-      alert("เกิดข้อผิดพลาดในการลบ: " + error.message);
+      toast.error("เกิดข้อผิดพลาดในการลบ: " + error.message);
     }
   };
 
   const deleteSelectedReports = async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`ยืนยันการลบรายการแจ้งปัญหาจำนวน ${selectedIds.length} รายการอย่างถาวร?`)) return;
-    
+    const ok = await showConfirm(`ยืนยันการลบรายการแจ้ปัญหาจำนวน ${selectedIds.length} รายการอย่างถาวร?`);
+    if (!ok) return;
     try {
       const deleteFn = reportsApi.delete || (reportsApi as any).remove;
       if (!deleteFn) {
-        alert("ยังไม่ได้สร้างฟังก์ชันลบใน reportsApi");
+        toast.error("ยังไม่ได้สร้างฟังก์ชันลบใน reportsApi");
         return;
       }
-
       await Promise.all(selectedIds.map(id => deleteFn(id)));
-      
       setReports(prev => prev.filter(r => !selectedIds.includes(r.id)));
-      setSelectedIds([]); 
-      alert("ลบรายการที่เลือกสำเร็จ");
+      setSelectedIds([]);
+      toast.success(`ลบ ${selectedIds.length} รายการสำเร็จ`);
     } catch (error: any) {
-      alert("เกิดข้อผิดพลาดในการลบ: " + error.message);
+      toast.error("เกิดข้อผิดพลาดในการลบ: " + error.message);
     }
   };
 
@@ -96,7 +120,7 @@ export default function AdminReportPage() {
   };
 
   const handleSelectOne = (id: string) => {
-    setSelectedIds(prev => 
+    setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
@@ -105,9 +129,44 @@ export default function AdminReportPage() {
 
   return (
     <div className="space-y-6">
+      {/* Toast container — sits below the sticky header */}
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        style={{ top: "4.5rem" }}
+      />
+
+      {/* ── Confirmation Modal ──────────────────────────────────── */}
+      {confirmModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 text-center">
+            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <p className="text-gray-800 font-semibold mb-6 leading-relaxed">{confirmModal.message}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleConfirmCancel}
+                className="flex-1 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-medium transition-colors"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleConfirmOk}
+                className="flex-1 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors"
+              >
+                ยืนยัน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-gray-900">รายการแจ้งปัญหา</h1>
-        
+
         {selectedIds.length > 0 && (
           <button
             onClick={deleteSelectedReports}
@@ -117,7 +176,7 @@ export default function AdminReportPage() {
           </button>
         )}
       </div>
-      
+
       <Card>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -132,8 +191,8 @@ export default function AdminReportPage() {
                   <div className="flex items-center gap-2">
                     <span>จัดการ</span>
                     {/* ย้าย Checkbox เลือกทั้งหมด มาไว้ด้านขวา */}
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer disabled:opacity-50"
                       onChange={handleSelectAll}
                       checked={isAllSelected}
@@ -162,30 +221,46 @@ export default function AdminReportPage() {
                     <td className="px-4 py-3 text-gray-600">
                       {report.problem_type}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
-                      {report.description}
+                    <td className="px-4 py-3 text-gray-600 max-w-xs">
+                      {report.description ? (
+                        <div>
+                          <p className={`text-sm leading-relaxed transition-all duration-300 ${expandedIds.has(report.id) ? "" : "line-clamp-2"
+                            }`}>
+                            {report.description}
+                          </p>
+                          {report.description.length > 80 && (
+                            <button
+                              onClick={() => toggleExpand(report.id)}
+                              className="text-x text-indigo-500 hover:text-indigo-700 font-medium mt-1 select-none"
+                            >
+                              {expandedIds.has(report.id) ? "ย่อ ▲" : "ดูทั้งหมด ▼"}
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        report.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${report.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
                         report.status === 'RESOLVED' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
+                          'bg-red-100 text-red-800'
+                        }`}>
                         {report.status === 'PENDING' ? 'รอตรวจสอบ' :
-                         report.status === 'RESOLVED' ? 'แก้ไขแล้ว' : 'ปฏิเสธ'}
+                          report.status === 'RESOLVED' ? 'แก้ไขแล้ว' : 'ปฏิเสธ'}
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         {report.status === 'PENDING' ? (
                           <>
-                            <button 
+                            <button
                               onClick={() => updateStatus(report.id, 'RESOLVED')}
                               className="text-green-600 hover:text-green-800 text-xs font-medium border border-green-200 px-2 py-1 rounded hover:bg-green-50"
                             >
                               เสร็จสิ้น
                             </button>
-                            <button 
+                            <button
                               onClick={() => updateStatus(report.id, 'REJECTED')}
                               className="text-orange-600 hover:text-orange-800 text-xs font-medium border border-orange-200 px-2 py-1 rounded hover:bg-orange-50"
                             >
@@ -195,14 +270,14 @@ export default function AdminReportPage() {
                         ) : (
                           <>
                             {/* ย้ายปุ่มลบมาไว้ด้านซ้าย และ Checkbox ไปด้านขวา */}
-                            <button 
+                            <button
                               onClick={() => deleteReport(report.id)}
                               className="text-red-600 hover:text-red-800 text-xs font-medium border border-red-200 px-3 py-1 rounded hover:bg-red-50 bg-white"
                             >
                               🗑️ ลบคำร้องเรียน
                             </button>
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 w-4 h-4 cursor-pointer"
                               checked={selectedIds.includes(report.id)}
                               onChange={() => handleSelectOne(report.id)}
