@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -16,6 +16,7 @@ export default function AddCoursePage() {
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const submitLockRef = useRef(false);
 
   const [formData, setFormData] = useState({
     code: "",
@@ -35,36 +36,47 @@ export default function AddCoursePage() {
     reader.readAsDataURL(file);
   };
 
-  const onSubmit = async () => {
-    if (!formData.code || !formData.name) {
-      toast.warning("กรุณากรอกข้อมูลให้ครบ");
-      return;
+const onSubmit = async () => {
+  // 🔒 กันกดย้ำทันที
+  if (submitLockRef.current) return;
+  submitLockRef.current = true;
+
+  if (!formData.code || !formData.name) {
+    toast.warning("กรุณากรอกข้อมูลให้ครบ");
+    submitLockRef.current = false; // ❗ ปลดล็อก เพราะยังไม่ได้ submit จริง
+    return;
+  }
+
+  setLoading(true);
+  try {
+    let imageUrl = formData.image_url;
+
+    if (imageFile) {
+      const { url } = await uploadApi.uploadFile(imageFile, "image");
+      imageUrl = url;
     }
 
-    setLoading(true);
-    try {
-      let imageUrl = formData.image_url;
+    await coursesApi.create({
+      ...formData,
+      image_url: imageUrl || null,
+    });
 
-      // Upload image if selected
-      if (imageFile) {
-        const { url } = await uploadApi.uploadFile(imageFile, 'image');
-        imageUrl = url;
-      }
+    toast.success("เพิ่มรายวิชาสำเร็จ");
 
-      await coursesApi.create({
-        ...formData,
-        image_url: imageUrl || null
-      });
+    // ✅ สำเร็จแล้ว → ไม่ต้องปลดล็อก (กันกดซ้ำถาวร)
+    setTimeout(() => router.push("/admin/courses"), 1000);
+  } catch (error: any) {
+    console.error(error);
+    toast.error(
+      "เกิดข้อผิดพลาด: " + (error.message || "ไม่สามารถบันทึกได้"),
+    );
 
-      toast.success("เพิ่มรายวิชาสำเร็จ");
-      setTimeout(() => router.push("/admin/courses"), 1000);
-    } catch (error: any) {
-      console.error(error);
-      toast.error("เกิดข้อผิดพลาด: " + (error.message || "ไม่สามารถบันทึกได้"));
-    } finally {
-      setLoading(false);
-    }
-  };
+    // ❗ error เท่านั้นที่ปลดล็อก
+    submitLockRef.current = false;
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>

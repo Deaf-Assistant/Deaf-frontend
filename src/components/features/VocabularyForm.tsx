@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Input from "@/components/ui/Input";
@@ -50,10 +51,11 @@ export default function VocabularyForm({
     definition: vocabulary?.definition || vocabulary?.description || "",
   });
 
+  const submitLockRef = useRef(false);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageFile2, setImageFile2] = useState<File | null>(null);
   const [imageFile3, setImageFile3] = useState<File | null>(null);
-
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [fingerspellingVideoFile, setFingerspellingVideoFile] =
     useState<File | null>(null); // ⭐ เพิ่ม
@@ -160,38 +162,33 @@ export default function VocabularyForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 🔒 ล็อกทันที กดซ้ำไม่ได้
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+
     try {
       let imageUrl = imagePreview;
       let imageUrl2 = imagePreview2;
       let imageUrl3 = imagePreview3;
       let videoUrl = videoPreview;
-      let fingerspellingVideoUrl = fingerspellingVideoPreview; // ⭐ เพิ่ม
+      let fingerspellingVideoUrl = fingerspellingVideoPreview;
 
-      // Upload image 1
       if (imageFile) {
         const uploadResult = await uploadApi.uploadFile(imageFile, "image");
         imageUrl = uploadResult.url;
       }
-
-      // Upload image 2
       if (imageFile2) {
         const uploadResult = await uploadApi.uploadFile(imageFile2, "image");
         imageUrl2 = uploadResult.url;
       }
-
-      // Upload image 3
       if (imageFile3) {
         const uploadResult = await uploadApi.uploadFile(imageFile3, "image");
         imageUrl3 = uploadResult.url;
       }
-
-      // Upload video ภาษามือ
       if (videoFile) {
         const uploadResult = await uploadApi.uploadFile(videoFile, "video");
         videoUrl = uploadResult.url;
       }
-
-      // ⭐ Upload video สะกดคำภาษามือ
       if (fingerspellingVideoFile) {
         const uploadResult = await uploadApi.uploadFile(
           fingerspellingVideoFile,
@@ -210,10 +207,10 @@ export default function VocabularyForm({
         categoryIds: selectedCategories,
       };
 
-      console.log("Form sending data:", submitData);
-      onSubmit(submitData);
+      await onSubmit(submitData); // 👈 await เพื่อความชัวร์
     } catch (error: any) {
       alert("เกิดข้อผิดพลาดในการอัปโหลดไฟล์: " + error.message);
+      submitLockRef.current = false; // ❗ ปลดล็อกเฉพาะกรณี error
     }
   };
 
