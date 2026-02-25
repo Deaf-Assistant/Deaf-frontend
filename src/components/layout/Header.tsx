@@ -108,11 +108,29 @@ const loadUser = async () => {
     loadUser();
   }, []);
 
+
   const handleLogout = async () => {
+try{
+
+    const cmuLogoutUrl = process.env.NEXT_PUBLIC_CMU_ENTRAID_LOGOUT_URL;
+
     await supabase.auth.signOut();
+
+    const isCmuAccount = user?.email?.endsWith('@cmu.ac.th');
+
     auth.logout();
-    window.location.href = ROUTES.LOGIN;
+  
+    if (cmuLogoutUrl && isCmuAccount) {
+        window.location.href = cmuLogoutUrl;
+      } else {
+        window.location.href = ROUTES.LOGIN;
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+
   };
+
 
   return (
     <header className="bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 sticky top-0 z-40 shadow-lg">

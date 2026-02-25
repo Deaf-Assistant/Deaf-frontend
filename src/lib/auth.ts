@@ -87,7 +87,6 @@ export const auth = {
     const user = this.getUser();
     if (!user) return false;
 
-    // --- แก้ไขจุดที่ Error ---
     // ใช้ user.role โดยตรง (ลบ user_metadata ออก)
     const userRole = user.role;
 
