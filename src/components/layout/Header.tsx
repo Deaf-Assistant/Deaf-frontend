@@ -23,7 +23,7 @@ const supabase = createClient();
 
 export default function Header() {
   const pathname = usePathname();
-  const [user, setUser] = useState<any>(null);
+  const [currentUser, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -108,11 +108,27 @@ const loadUser = async () => {
     loadUser();
   }, []);
 
+
   const handleLogout = async () => {
+try{
+    const currentUser = auth.getUser();
+    const cmuLogoutUrl = process.env.NEXT_PUBLIC_CMU_ENTRAID_LOGOUT_URL;
+    const isCmuAccount = currentUser?.email?.endsWith('@cmu.ac.th');
+
     await supabase.auth.signOut();
     auth.logout();
-    window.location.href = ROUTES.LOGIN;
+  
+    if (cmuLogoutUrl && isCmuAccount) {
+        window.location.href = cmuLogoutUrl;
+      } else {
+        window.location.href = ROUTES.LOGIN;
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+
   };
+
 
   return (
     <header className="bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 sticky top-0 z-40 shadow-lg">
@@ -147,7 +163,7 @@ const loadUser = async () => {
               <span className="font-black text-sm">ABC</span> คำศัพท์
             </NavItem>
 
-            {!isLoading && user && (
+            {!isLoading && currentUser && (
               <NavItem
                 href={ROUTES.FAVORITES}
                 active={isActive(ROUTES.FAVORITES)}
@@ -156,13 +172,13 @@ const loadUser = async () => {
               </NavItem>
             )}
 
-            {!isLoading && user && (
+            {!isLoading && currentUser && (
               <NavItem href={ROUTES.REPORT} active={isActive(ROUTES.REPORT)}>
                 <AlertCircle className="w-5 h-5" /> รายงานปัญหา
               </NavItem>
             )}
 
-            {!isLoading && user && auth.isAdmin() && (
+            {!isLoading && currentUser && auth.isAdmin() && (
               <NavItem
                 href={ROUTES.ADMIN_DASHBOARD}
                 active={pathname.startsWith("/admin")}
@@ -175,14 +191,14 @@ const loadUser = async () => {
 
           {/* User menu */}
           <div className="hidden xl:flex items-center gap-3 shrink-0">
-            {isLoading ? null : user ? (
+            {isLoading ? null : currentUser ? (
               <>
                 <div className="text-right max-w-[140px]">
                   <p className="font-bold text-purple-700 truncate">
-                    {user.name}
+                    {currentUser.name}
                   </p>
                   <p className="text-xs text-purple-600 uppercase truncate">
-                    {user.role}
+                    {currentUser.role}
                   </p>
                 </div>
                 <button
@@ -222,18 +238,18 @@ const loadUser = async () => {
             <MobileItem href={ROUTES.COURSES}>รายวิชา</MobileItem>
             <MobileItem href={ROUTES.VOCABULARY}>คำศัพท์</MobileItem>
 
-            {user && (
+            {currentUser && (
               <>
                 <MobileItem href={ROUTES.FAVORITES}>รายการโปรด</MobileItem>
                 <MobileItem href={ROUTES.REPORT}>รายงานปัญหา</MobileItem>
               </>
             )}
 
-            {user && auth.isAdmin() && (
+            {currentUser && auth.isAdmin() && (
               <MobileItem href={ROUTES.ADMIN_DASHBOARD}>จัดการระบบ</MobileItem>
             )}
 
-            {user ? (
+            {currentUser ? (
               <button
                 onClick={handleLogout}
                 className="mt-3 flex items-center justify-center gap-2 px-4 py-3 bg-rose-300 text-rose-800 rounded-xl font-bold"
