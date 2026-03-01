@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  deaf-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      
+      args:
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        - NEXT_PUBLIC_CMU_CLIENT_ID=${NEXT_PUBLIC_CMU_CLIENT_ID}
+        - NEXT_PUBLIC_CMU_ENTRAID_URL=${NEXT_PUBLIC_CMU_ENTRAID_URL}
+        - NEXT_PUBLIC_CMU_ENTRAID_LOGOUT_URL=${NEXT_PUBLIC_CMU_ENTRAID_LOGOUT_URL}
+        - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+    container_name: deaf-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    # อ่านตัวแปรทั้งหมด (รวมถึงพวก Secret Key) ไปใช้ตอนรันเซิร์ฟเวอร์
+    env_file:
+      - .env.local

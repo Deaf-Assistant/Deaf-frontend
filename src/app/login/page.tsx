@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react'; // 1. เพิ่ม Suspense เข้ามา
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
@@ -10,10 +10,10 @@ import { auth } from '@/lib/auth';
 import { ROUTES } from '@/lib/constants';
 import Image from 'next/image';
 
-// 1. Import รูปเข้ามาเพื่อให้ Next.js จัดการ (สังเกต .jpg ตามชื่อไฟล์จริง)
 import cmuLogo from '@/img/logocmu.jpg';
 
-export default function LoginPage() {
+// 2. แยกฟอร์มที่มีการดึง URL Parameter ออกมาเป็น Component ใหม่
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect');
@@ -75,6 +75,105 @@ export default function LoginPage() {
   };
 
   return (
+    <div className="bg-white rounded-2xl shadow-2xl p-8">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="text-base">{error}</span>
+            </div>
+          </div>
+        )}
+
+        <Input
+          type="email"
+          name="email"
+          label="อีเมล"
+          value={formData.email}
+          onChange={handleChange}
+          required
+          placeholder="your.email@cmu.ac.th"
+          autoComplete="email"
+        />
+
+        <Input
+          type="password"
+          name="password"
+          label="รหัสผ่าน"
+          value={formData.password}
+          onChange={handleChange}
+          required
+          placeholder="••••••••"
+          autoComplete="current-password"
+        />
+
+        <Button
+          type="submit"
+          fullWidth
+          size="lg"
+          loading={loading}
+          disabled={loading}
+        >
+          เข้าสู่ระบบ
+        </Button>
+      </form>
+
+      {/* CMU Login Section */}
+      <div className="mt-6">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">หรือเข้าสู่ระบบด้วย</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleCMULogin}
+          className="mt-6 w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+        >
+          {/* Image Logo */}
+          <div className="mr-3 relative w-6 h-6">
+            <Image 
+              src={cmuLogo} 
+              alt="CMU Logo"
+              width={24}
+              height={24}
+              className="object-contain"
+            />
+          </div>
+          CMU Account
+        </button>
+      </div>
+
+      {/* Links */}
+      <div className="mt-6 text-center space-y-3">
+        <p className="text-base text-gray-600">
+          ยังไม่มีบัญชี?{' '}
+          <Link href={ROUTES.REGISTER} className="text-blue-600 hover:text-blue-700 font-medium">
+            ลงทะเบียนที่นี่
+          </Link>
+        </p>
+
+        <Link
+          href={ROUTES.HOME}
+          className="block text-base text-gray-500 hover:text-gray-700"
+        >
+          ← กลับสู่หน้าหลัก
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// 3. สร้างหน้าที่ใช้ Export จริง โดยเอา Suspense มาครอบฟอร์ม
+export default function LoginPage() {
+  return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         {/* Logo Header */}
@@ -88,100 +187,14 @@ export default function LoginPage() {
           <p className="text-blue-100 text-lg">เข้าสู่ระบบ</p>
         </div>
 
-        {/* Login Form Container */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-base">{error}</span>
-                </div>
-              </div>
-            )}
-
-            <Input
-              type="email"
-              name="email"
-              label="อีเมล"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="your.email@cmu.ac.th"
-              autoComplete="email"
-            />
-
-            <Input
-              type="password"
-              name="password"
-              label="รหัสผ่าน"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
-
-            <Button
-              type="submit"
-              fullWidth
-              size="lg"
-              loading={loading}
-              disabled={loading}
-            >
-              เข้าสู่ระบบ
-            </Button>
-          </form>
-
-          {/* CMU Login Section */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">หรือเข้าสู่ระบบด้วย</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleCMULogin}
-              className="mt-6 w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
-            >
-              {/* Image Logo */}
-              <div className="mr-3 relative w-6 h-6">
-                <Image 
-                  src={cmuLogo} 
-                  alt="CMU Logo"
-                  width={24}
-                  height={24}
-                  className="object-contain"
-                />
-              </div>
-              CMU Account
-            </button>
+        {/* จุดที่ 4: ครอบ Suspense */}
+        <Suspense fallback={
+          <div className="bg-white rounded-2xl shadow-2xl p-8 flex justify-center items-center h-[500px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
-
-          {/* Links */}
-          <div className="mt-6 text-center space-y-3">
-            <p className="text-base text-gray-600">
-              ยังไม่มีบัญชี?{' '}
-              <Link href={ROUTES.REGISTER} className="text-blue-600 hover:text-blue-700 font-medium">
-                ลงทะเบียนที่นี่
-              </Link>
-            </p>
-
-            <Link
-              href={ROUTES.HOME}
-              className="block text-base text-gray-500 hover:text-gray-700"
-            >
-              ← กลับสู่หน้าหลัก
-            </Link>
-          </div>
-        </div>
+        }>
+          <LoginContent />
+        </Suspense>
 
         {/* Info Footer */}
         <div className="mt-6 text-center">

@@ -18,6 +18,7 @@ export interface Course {
   created_at?: string;
   updated_at?: string;
   visibility?: 'everyone' | 'login' | 'admin';
+  view_count?: number;
 }
 
 export interface Vocabulary {
@@ -35,6 +36,7 @@ export interface Vocabulary {
   // field ที่ join มา (optional)
   courses?: Course;
   chapters?: any;
+  view_count?: number;
 }
 
 export interface Report {

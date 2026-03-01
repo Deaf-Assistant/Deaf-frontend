@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react'; // เพิ่มการอิมพอร์ต Suspense
 import { useSearchParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 import { createClient } from '@/lib/supabase'; 
@@ -9,7 +9,8 @@ import { ROUTES } from '@/lib/constants';
 
 const supabase = createClient(); 
 
-export default function CMUCallbackPage() {
+// 1. เปลี่ยนชื่อจาก export default function CMUCallbackPage เป็นฟังก์ชันธรรมดา
+function CallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const code = searchParams.get('code');
@@ -87,5 +88,24 @@ export default function CMUCallbackPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// 2. สร้าง export default ตัวใหม่ที่ใช้ Suspense ครอบ
+export default function CMUCallbackPage() {
+  return (
+    <Suspense fallback={
+      // หน้าจอโหลดระหว่างรอ Suspense ทำงาน (UI เหมือนข้างในเพื่อไม่ให้หน้าจอกระตุก)
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <div className="bg-white p-8 rounded-xl shadow-lg text-center">
+          <h2 className="text-xl font-bold text-blue-600 mb-4">กำลังเตรียมพร้อม...</h2>
+          <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <CallbackContent />
+    </Suspense>
   );
 }
