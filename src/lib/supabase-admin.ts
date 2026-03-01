@@ -8,6 +8,11 @@ export const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
+// console.log("=== ตรวจสอบ JWT ฝั่ง Next.js ===");
+// console.log("URL ที่ใช้:", process.env.NEXT_PUBLIC_SUPABASE_URL!,);
+// console.log("SERVICE KEY ที่อ่านได้:", process.env.SUPABASE_SERVICE_ROLE_KEY!);
+// console.log("===============================");
+
 export async function signInWithCMUUser(cmuUser: CmuEntraIDBasicInfo) {
   const email = cmuUser.cmuitaccount;
   const fullName = `${cmuUser.firstname_EN} ${cmuUser.lastname_EN}`;
@@ -15,9 +20,9 @@ export async function signInWithCMUUser(cmuUser: CmuEntraIDBasicInfo) {
   // Logic กำหนด Role (ใช้เฉพาะตอนสร้าง User ใหม่เท่านั้น)
   let initialRole = 'STUDENT';
   const accountType = cmuUser.itaccounttype_EN.toLowerCase();
-  if (accountType.includes('staff') || accountType.includes('misaccount')) {
-    initialRole = 'LECTURER'; 
-  }
+  // if (accountType.includes('staff') || accountType.includes('misaccount')) {
+  //   initialRole = 'LECTURER'; 
+  // }
 
   const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
   const existingAuthUser = users.find(u => u.email === email);
