@@ -11,8 +11,8 @@ interface VocabularyCardProps {
 export default function VocabularyCard({ vocabulary }: VocabularyCardProps) {
   const router = useRouter();
 
-  const handleClick = () => {
-    incrementView("vocabularies", vocabulary.id);
+  const handleClick = async () => {
+    await incrementView('vocabularies', vocabulary.id); 
     router.push(`/vocabulary/${vocabulary.id}`);
   };
 

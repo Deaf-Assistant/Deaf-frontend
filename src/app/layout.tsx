@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import AuthSync from '@/components/AuthSync'; // 👈 นำเข้าไฟล์ที่เพิ่งสร้าง
+import AuthSync from '@/components/AuthSync'; 
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="th">
       <body className={inter.className}>
-        <AuthSync /> {/* 👈 วางไว้ตรงนี้เลยครับ สำคัญมาก! */}
+        <AuthSync /> 
         {children}
       </body>
     </html>
