@@ -40,7 +40,7 @@ export async function DELETE(req: NextRequest) {
 
         const { data: callerProfile } = await supabaseAdmin
             .from("users").select("role").eq("id", caller.id).single();
-        if (callerProfile?.role !== "ADMIN")
+        if (!callerProfile || !["ADMIN", "INTERPRETER", "LECTURER"].includes(callerProfile.role.toUpperCase()))
             return NextResponse.json({ ok: false, message: "Permission denied" }, { status: 403 });
 
         // ── Parse body ────────────────────────────────────────────
