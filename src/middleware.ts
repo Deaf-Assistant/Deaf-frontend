@@ -30,10 +30,13 @@ export async function middleware(request: NextRequest) {
   })
 
   // Initialize a server-side Supabase client that reads/writes cookies from the request
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+const supabase = createServerClient(
+    process.env.SUPABASE_URL_INTERNAL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      cookieOptions: {
+        name: 'deaf-auth', 
+      },
       cookies: {
         get(name: string) { return request.cookies.get(name)?.value },
         set(name: string, value: string, options: CookieOptions) {
@@ -49,7 +52,7 @@ export async function middleware(request: NextRequest) {
   )
 
   // 1. Resolve the currently authenticated user from the session
-  const { data: { user } } = await supabase.auth.getUser()
+ const { data: { user }, error: authError } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname;
 
   // 2. Fetch the user's role from the `users` table (single query reused for all guards)
@@ -60,9 +63,13 @@ export async function middleware(request: NextRequest) {
       .select('role')
       .eq('id', user.id)
       .single()
+
+    console.log('--- Middleware Debug ---');
+    console.log('Profile Data:', profile);
     userRole = profile?.role?.toUpperCase() || 'MEMBER';
   }
 
+    
   const adminRoles = ['ADMIN', 'INTERPRETER', 'LECTURER'];
 
   // ==========================================

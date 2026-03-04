@@ -3,15 +3,11 @@ import { CmuEntraIDBasicInfo } from "@/types/CmuEntraIDBasicInfo";
 
 
 export const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_URL_INTERNAL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
   { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
-// console.log("=== ตรวจสอบ JWT ฝั่ง Next.js ===");
-// console.log("URL ที่ใช้:", process.env.NEXT_PUBLIC_SUPABASE_URL!,);
-// console.log("SERVICE KEY ที่อ่านได้:", process.env.SUPABASE_SERVICE_ROLE_KEY!);
-// console.log("===============================");
 
 export async function signInWithCMUUser(cmuUser: CmuEntraIDBasicInfo) {
   const email = cmuUser.cmuitaccount;
@@ -53,7 +49,7 @@ export async function signInWithCMUUser(cmuUser: CmuEntraIDBasicInfo) {
       id: userId,
       email: email,
       name: fullName,
-      role: initialRole // ✅ ใส่ Role ตรงนี้
+      role: initialRole 
     });
   } else {
 
