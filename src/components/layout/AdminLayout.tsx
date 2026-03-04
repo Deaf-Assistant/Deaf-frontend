@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <Header />
 
       {/* spacer กัน Header sticky */}
-      <div className="h-20" />
+      <div className="h-5" />
 
       <div className="flex flex-1">
         <Sidebar />

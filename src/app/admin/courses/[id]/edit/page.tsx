@@ -60,7 +60,7 @@ export default function EditCoursePage() {
       if (data.chapters) {
         // เรียงตามชื่อ (หรือจะเรียงตาม order ก็ได้ถ้าทำระบบ order)
         const sorted = data.chapters.sort((a: any, b: any) =>
-          a.name.localeCompare(b.name)
+          a.name.localeCompare(b.name),
         );
         setChapters(sorted);
       }
@@ -73,13 +73,19 @@ export default function EditCoursePage() {
     }
   };
 
-  const handleImageSelect = (file: File) => {
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+  const handleImageSelect = (file: File | null) => {
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // 👈 กรณีที่ผู้ใช้กด "ลบไฟล์" ในคอมโพเนนต์ FileUpload
+      setImageFile(null);
+      setImagePreview("");
+    }
   };
 
   const onSaveCourse = async () => {
@@ -94,17 +100,21 @@ export default function EditCoursePage() {
 
       // Upload new image if selected
       if (imageFile) {
-        const { url } = await uploadApi.uploadFile(imageFile, 'image');
+        const { url } = await uploadApi.uploadFile(imageFile, "image");
         imageUrl = url;
+       } else if (imagePreview === "") {
+        imageUrl = "";
       }
 
-      await coursesApi.update(courseId, {
-        ...formData,
-        image_url: imageUrl || null,
-      });
-      logAction("EDIT_COURSE", "course", courseId, formData.name, {
-        code: formData.code,
-      });
+     await coursesApi.update(courseId, {
+      ...formData,
+      image_url: imageUrl, // ส่งค่าใหม่/เดิม หรือ null ไปที่ API
+    });
+
+    setFormData(prev => ({ ...prev, image_url: imageUrl || "" }));
+    logAction("EDIT_COURSE", "course", courseId, formData.name, {
+      code: formData.code,
+    });
       toast.success("บันทึกข้อมูลรายวิชาสำเร็จ");
       // ไม่ต้อง redirect เพื่อให้จัดการบทเรียนต่อได้
     } catch (error: any) {
@@ -151,8 +161,8 @@ export default function EditCoursePage() {
       // อัปเดตใน state
       setChapters(
         chapters.map((c) =>
-          c.id === chapterId ? { ...c, name: editChapterName } : c
-        )
+          c.id === chapterId ? { ...c, name: editChapterName } : c,
+        ),
       );
       setEditingChapterId(null);
       setEditChapterName("");
@@ -166,7 +176,7 @@ export default function EditCoursePage() {
   const handleDeleteChapter = async (chapterId: string) => {
     if (
       !confirm(
-        "ต้องการลบบทเรียนนี้? (หากมีคำศัพท์อยู่จะลบไม่ได้ หรือคำศัพท์จะหายไปตามการตั้งค่า DB)"
+        "ต้องการลบบทเรียนนี้? (หากมีคำศัพท์อยู่จะลบไม่ได้ หรือคำศัพท์จะหายไปตามการตั้งค่า DB)",
       )
     )
       return;
@@ -184,7 +194,11 @@ export default function EditCoursePage() {
 
   return (
     <>
-      <ToastContainer position="top-center" autoClose={3000} style={{ top: '10%' }} />
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        style={{ top: "10%" }}
+      />
       <div className="max-w-4xl mx-auto space-y-8 pb-10">
         {/* --- Card 1: ข้อมูลรายวิชา --- */}
         <Card>
@@ -232,11 +246,15 @@ export default function EditCoursePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">การมองเห็น</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                การมองเห็น
+              </label>
               <select
                 className="w-full px-5 py-5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                 value={formData.visibility}
-                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, visibility: e.target.value })
+                }
               >
                 <option value="everyone">สาธารณะ (เห็นได้ทุกคน)</option>
                 <option value="login">เฉพาะสมาชิก (ต้องเข้าสู่ระบบ)</option>
@@ -248,7 +266,7 @@ export default function EditCoursePage() {
             <FileUpload
               label="รูปภาพปกรายวิชา"
               type="image"
-              accept={FILE_LIMITS.IMAGE.ACCEPTED.join(',')}
+              accept={FILE_LIMITS.IMAGE.ACCEPTED.join(",")}
               maxSize={FILE_LIMITS.IMAGE.MAX_SIZE}
               onFileSelect={handleImageSelect}
               preview={imagePreview}
@@ -276,7 +294,10 @@ export default function EditCoursePage() {
               onChange={(e) => setNewChapterName(e.target.value)}
               className="bg-white"
             />
-            <Button onClick={handleAddChapter} disabled={!newChapterName.trim()}>
+            <Button
+              onClick={handleAddChapter}
+              disabled={!newChapterName.trim()}
+            >
               + เพิ่ม
             </Button>
           </div>

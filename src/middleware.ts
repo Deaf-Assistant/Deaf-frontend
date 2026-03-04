@@ -167,4 +167,5 @@ const supabase = createServerClient(
  */
 export const config = {
   matcher: ['/admin/:path*', '/vocabulary/:path*', '/courses/:path*'],
+  // Note: คิดว่าถ้า login แล้วไม่ควรจะกดไปหน้า login หรือ register ได้อีก เพราะจะงงว่าทำไมกดแล้วไม่เข้า
 }

@@ -484,7 +484,12 @@ export default function VocabularyForm({
         maxSize={FILE_LIMITS.IMAGE.MAX_SIZE}
         label="รูปภาพประกอบ 1 (หลัก)"
         preview={imagePreview}
-        onFileSelect={(file) => setImageFile(file)}
+        onFileSelect={(file) => {
+          setImageFile(file);
+          if (file === null) {
+            setImagePreview("");
+          }
+        }}
       />
 
       {/* รูปภาพประกอบ 2 */}
@@ -494,7 +499,12 @@ export default function VocabularyForm({
         maxSize={FILE_LIMITS.IMAGE.MAX_SIZE}
         label="รูปภาพประกอบ 2 (ถ้ามี)"
         preview={imagePreview2}
-        onFileSelect={(file) => setImageFile2(file)}
+        onFileSelect={(file) => {
+          setImageFile2(file);
+          if (file === null) {
+            setImagePreview2("");
+          }
+        }}
       />
 
       {/* รูปภาพประกอบ 3 */}
@@ -504,7 +514,12 @@ export default function VocabularyForm({
         maxSize={FILE_LIMITS.IMAGE.MAX_SIZE}
         label="รูปภาพประกอบ 3 (ถ้ามี)"
         preview={imagePreview3}
-        onFileSelect={(file) => setImageFile3(file)}
+        onFileSelect={(file) => {
+          setImageFile3(file);
+          if (file === null) {
+            setImagePreview3("");
+          }
+        }}
       />
 
       {/* วิดีโอภาษามือ */}
@@ -514,7 +529,12 @@ export default function VocabularyForm({
         maxSize={FILE_LIMITS.VIDEO.MAX_SIZE}
         label="วิดีโอภาษามือ"
         preview={videoPreview}
-        onFileSelect={(file) => setVideoFile(file)}
+        onFileSelect={(file) => {
+          setVideoFile(file);
+          if (file === null) {
+            setVideoPreview("");
+          }
+        }}
       />
 
       {/*  วิดีโอสะกดคำภาษามือ  */}
@@ -524,7 +544,12 @@ export default function VocabularyForm({
         maxSize={FILE_LIMITS.VIDEO.MAX_SIZE}
         label="วิดีโอสะกดคำภาษามือ"
         preview={fingerspellingVideoPreview}
-        onFileSelect={(file) => setFingerspellingVideoFile(file)}
+        onFileSelect={(file) => {
+          setFingerspellingVideoFile(file);
+          if (file === null) {
+            setFingerspellingVideoPreview("");
+          }
+        }}
       />
 
       <div className="flex gap-4 pt-4">

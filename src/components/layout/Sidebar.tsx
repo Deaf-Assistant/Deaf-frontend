@@ -34,6 +34,24 @@ const menuItems = [
     href: ROUTES.ADMIN_VOCABULARY,
   },
   {
+    title: "จัดการหมวดหมู่",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          fillRule="evenodd"
+          d="M5.25 2.25a3 3 0 0 0-3 3v4.318a3 3 0 0 0 .879 2.121l9.58 9.581c.92.92 2.39 1.186 3.548.428a18.849 18.849 0 0 0 5.441-5.44c.758-1.16.492-2.629-.428-3.548l-9.58-9.581a3 3 0 0 0-2.122-.879H5.25ZM6.375 7.5a1.125 1.125 0 1 0 0-2.25 1.125 1.125 0 0 0 0 2.25Z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    href: ROUTES.ADMIN_LABEL,
+  },
+  {
     title: "รายงานทั้งหมด",
     icon: (
       <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -44,7 +62,7 @@ const menuItems = [
         />
       </svg>
     ),
-    href: "/admin/reports",
+    href: ROUTES.ADMIN_REPORTS,
   },
 ];
 
@@ -71,9 +89,10 @@ export default function Sidebar() {
               href={item.href}
               className={`
                 flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                ${isActive(item.href)
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-gray-100"
+                ${
+                  isActive(item.href)
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "text-gray-700 hover:bg-gray-100"
                 }
               `}
             >
@@ -86,10 +105,11 @@ export default function Sidebar() {
               href="/admin/users"
               className={`
                   flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                  ${pathname.startsWith("/admin/users")
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-gray-100"
-                }
+                  ${
+                    pathname.startsWith("/admin/users")
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }
                 `}
             >
               <span className="mr-3">
@@ -109,15 +129,24 @@ export default function Sidebar() {
               href="/admin/media"
               className={`
                   flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                  ${pathname.startsWith("/admin/media")
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-gray-100"
-                }
+                  ${
+                    pathname.startsWith("/admin/media")
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }
                 `}
             >
               <span className="mr-3">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </span>
               จัดการสื่อ
@@ -128,14 +157,19 @@ export default function Sidebar() {
               href="/admin/stats"
               className={`
                   flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                  ${pathname.startsWith("/admin/stats")
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-gray-100"
-                }
+                  ${
+                    pathname.startsWith("/admin/stats")
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }
                 `}
             >
               <span className="mr-3">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-6 h-6"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
               </span>
@@ -147,16 +181,26 @@ export default function Sidebar() {
               href="/admin/audit-log"
               className={`
                   flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                  ${pathname.startsWith("/admin/audit-log")
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-gray-100"
-                }
+                  ${
+                    pathname.startsWith("/admin/audit-log")
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }
                 `}
             >
               <span className="mr-3">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                  />
                 </svg>
               </span>
               Audit Log

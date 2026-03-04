@@ -8,6 +8,8 @@ export const ROUTES = {
   ADMIN_DASHBOARD: '/admin/dashboard',
   ADMIN_COURSES: '/admin/courses',
   ADMIN_VOCABULARY: '/admin/vocabulary',
+  ADMIN_LABEL: '/admin/label',
+  ADMIN_REPORTS: '/admin/reports',
   FAVORITES: '/favorite',
   QUIZ: '/quiz',
 };

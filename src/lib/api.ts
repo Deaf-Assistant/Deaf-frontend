@@ -711,4 +711,17 @@ export const uploadApi = {
 };
 
 
+/**
+ * for get path url from supabase url to use in delete file in supabase storage
+ * @param url url from supabase storage e.g. 'https://your-supabase-url/storage/v1/object/public/vocabulary/vocab-files/pic1.jpg'
+ * @param bucketName bucket name in supabase storage e.g. 'vocabulary'
+ * @returns path in supabase storage e.g. 'vocab-files/pic1.jpg'
+ */
+export const extractPathFromUrl = (url: string | null, bucketName: string) => {
+  if (!url) return null;
+  const parts = url.split(`/public/${bucketName}/`);
+  return parts[1] || null; 
+};
+
+
 

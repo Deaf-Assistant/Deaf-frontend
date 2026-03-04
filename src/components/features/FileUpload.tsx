@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 interface FileUploadProps {
   accept: string;
   maxSize: number;
-  onFileSelect: (file: File) => void;
+  onFileSelect: (file: File|null) => void;
   label?: string;
   type: "image" | "video";
   preview?: string;
@@ -103,6 +103,7 @@ export default function FileUpload({
     setPreviewUrl(null);
     setError("");
     if (inputRef.current) inputRef.current.value = "";
+    onFileSelect(null);
   };
 
   // ── Drag handlers ──────────────────────────────────────────────
