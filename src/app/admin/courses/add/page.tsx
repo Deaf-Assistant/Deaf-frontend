@@ -27,14 +27,17 @@ export default function AddCoursePage() {
     visibility: "everyone"
   });
 
-  const handleImageSelect = (file: File) => {
+const handleImageSelect = (file: File | null) => {
     setImageFile(file);
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview("");
+    }
   };
 
   const onSubmit = async () => {
