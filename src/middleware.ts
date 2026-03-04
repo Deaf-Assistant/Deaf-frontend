@@ -64,8 +64,6 @@ const supabase = createServerClient(
       .eq('id', user.id)
       .single()
 
-    console.log('--- Middleware Debug ---');
-    console.log('Profile Data:', profile);
     userRole = profile?.role?.toUpperCase() || 'MEMBER';
   }
 

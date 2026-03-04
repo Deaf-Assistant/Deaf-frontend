@@ -179,7 +179,7 @@ function VocabularyContent() {
           <div className="mb-8 max-w-2xl">
             <SearchBox
               onSearch={handleSearch}
-              placeholder="ค้นหาคำศัพท์... (รองรับการสะกดผิด)"
+              placeholder="ค้นหาคำศัพท์..."
               autoFocus={!!searchParams.get('q')}
             />
           </div>
