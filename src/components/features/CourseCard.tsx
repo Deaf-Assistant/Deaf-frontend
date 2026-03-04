@@ -30,15 +30,15 @@ export default function CourseCard({ course, vocabularyCount, onToggleVisibility
     };
   }, []);
 
-  // 👈 2. สร้างฟังก์ชันกดแล้วนับวิว
-  const handleClick = () => {
-    incrementView('courses', course.id);
+
+  const handleClick = async () => {
+    await incrementView('courses', course.id); 
     router.push(`/courses/${course.id}`);
   };
 
   return (
     <div
-      onClick={handleClick} // 👈 3. ใส่ handleClick ตรงนี้
+      onClick={handleClick} 
       className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer overflow-hidden group relative"
     >
       {/* ... (ส่วน Pin Button และ Visibility Toggle เหมือนเดิม ไม่ต้องแก้) ... */}

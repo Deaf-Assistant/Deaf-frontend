@@ -18,6 +18,8 @@ import {
 import { auth } from "@/lib/auth";
 import { createClient } from "@/lib/supabase";
 import { ROUTES } from "@/lib/constants";
+import path from "path/win32";
+import { GraduationCap } from 'lucide-react';
 
 const supabase = createClient();
 
@@ -34,13 +36,12 @@ export default function Header() {
 
 const loadUser = async () => {
     try {
-      // 1. โหลดข้อมูลจาก Local Storage มาแสดงก่อน เพื่อไม่ให้หน้าจอกระตุก
+   
       const localUser = auth.getUser();
       if (localUser) {
         setUser(localUser);
       }
 
-      // 2. แอบไปดึงข้อมูลใหม่ล่าสุดจาก Database (Supabase) มาเช็คสิทธิ์ซ้ำ
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const { data: profile } = await supabase
@@ -57,7 +58,7 @@ const loadUser = async () => {
             ...profile
         };
 
-        // 3. ถ้าข้อมูลใหม่ไม่ตรงกับของเดิม ให้อัปเดต Local Storage และหน้าจอทันที
+    
         auth.setToken(session.access_token);
         // @ts-ignore
         auth.setUser(fullUser);
@@ -139,9 +140,9 @@ try{
             href={ROUTES.HOME}
             className="flex items-center space-x-3 shrink-0"
           >
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center">
-              🦆
-            </div>
+      <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+        <img src="/icon.png" className="w-8 h-8" />
+      </div>
             <div className="hidden sm:block">
               <h1 className="text-2xl font-bold text-purple-700">DDCMU</h1>
               <p className="text-sm text-purple-600">ผู้ช่วยการเรียนรู้ 📚</p>
@@ -230,7 +231,7 @@ try{
           </button>
         </div>
       </div>
-      {/* ✅ Mobile Menu (อยู่นอก flex) */}
+
       {isMenuOpen && (
         <div className="xl:hidden bg-white/95 backdrop-blur border-t border-purple-200">
           <nav className="flex flex-col px-4 py-4 gap-2">

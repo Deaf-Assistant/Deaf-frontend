@@ -50,7 +50,7 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const user = auth.getUser(); // 👈 เพิ่ม
+  const user = auth.getUser();
 
   const isActive = (href: string) => {
     if (href === ROUTES.ADMIN_DASHBOARD) {
