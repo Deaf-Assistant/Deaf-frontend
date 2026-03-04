@@ -1,20 +1,23 @@
 describe('click top bar as student', () => {
+
+
+
+
+
   beforeEach(() => {
     // Cypress starts out with a blank slate for each test
     // so we must tell it to visit our website with the `cy.visit()` command.
     // Since we want to visit the same URL at the start of all our tests,
-    // we include it in our beforeEach function so that it runs before each test
-
+    // we include it in our beforeEach function so that it runs before each test http://localhost:3000/vocabulary
     cy.visit('http://localhost:3000/login')
-    cy.get('input.w-full').eq(0).type('gust2@gmail.com{enter}')
+    cy.get('input.w-full').eq(0).type('gust5@gmail.com{enter}')
     cy.get('input.w-full').eq(1).type('123456{enter}')
-
+    cy.get('button.p-2').eq(0).click()
+    cy.get('a.px-4').eq(1).click()
 
   })
 
   it('click search and search(type collectly)', () => {
-    cy.get('button.p-2').eq(0).click()
-    cy.get('a.px-4').eq(2).click()
     // cy.get('div.mb-8 form').click().type('test{enter}')
 
     cy.get('div.mb-8 form input').type('test{enter}')
@@ -24,8 +27,6 @@ describe('click top bar as student', () => {
   })
 
   it('click search and search(type collectly ไม่ควรพบสิ่งที่ไม่ได้ค้นหา)', () => {
-    cy.get('button.p-2').eq(0).click()
-    cy.get('a.px-4').eq(2).click()
     // cy.get('div.mb-8 form').click().type('test{enter}')
 
     cy.get('div.mb-8 form input').type('test{enter}')
@@ -35,8 +36,6 @@ describe('click top bar as student', () => {
   })
 
   it('click search and search(type collectly but Uppercase)', () => {
-    cy.get('button.p-2').eq(0).click()
-    cy.get('a.px-4').eq(2).click()
     // cy.get('div.mb-8 form').click().type('test{enter}')
 
     cy.get('div.mb-8 form input').type('TEST{enter}')
@@ -46,8 +45,6 @@ describe('click top bar as student', () => {
   })
 
   it('click search and search(unfinish type [te])', () => {
-    cy.get('button.p-2').eq(0).click()
-    cy.get('a.px-4').eq(2).click()
     // cy.get('div.mb-8 form').click().type('test{enter}')
 
     cy.get('div.mb-8 form input').type('te{enter}')
@@ -58,36 +55,31 @@ describe('click top bar as student', () => {
 
 
 
-  it('click เข้าดูตัวคำศัพท์', () => {
-    cy.get('button.p-2').eq(0).click()
-    cy.get('a.px-4').eq(2).click()
+  it('mark and unmark ', () => {
 
-    cy.url().then((oldUrl) => {
+    cy.get('div.mb-8 form input').type('test{enter}')
+    cy.get('button.top-3').eq(0).click()
 
-      cy.get('div.p-5').eq(0).click()
+    //cy.get('button.p-2').eq(0).click()
+    //cy.get('a.px-4').eq(2).click()
 
-      cy.url().should('not.eq', oldUrl)
+    //cy.get('button.p-2').eq(0).click()
+    //cy.get('a.px-4').eq(1).click()
 
-    })
+    cy.get('h3.text-xl')
+        .eq(0)
+        .should('have.text', 'test')
 
 
 
-  })
-
-
-  it('fav+unfav', () => {
-    cy.get('button.p-2').eq(0).click()
-    cy.get('a.px-4').eq(2).click()
-    cy.get('input').eq(0).type('test{enter}')
-    cy.get('div.p-5').eq(0).click().wait(1000)
-    cy.get('button.p-3').eq(0).click()
-
-    cy.get('button.p-2').eq(0).click()
-    cy.get('a.px-4').eq(3).click()
 
 
   })
+
+
+
+
+
 
 
 })
-

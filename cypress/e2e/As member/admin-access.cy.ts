@@ -10,7 +10,7 @@ describe('click top bar as student', () => {
     // Since we want to visit the same URL at the start of all our tests,
     // we include it in our beforeEach function so that it runs before each test http://localhost:3000/vocabulary
     cy.visit('http://localhost:3000/login')
-    cy.get('input.w-full').eq(0).type('gust2@gmail.com{enter}')
+    cy.get('input.w-full').eq(0).type('gust5@gmail.com{enter}')
     cy.get('input.w-full').eq(1).type('123456{enter}')
 
   })
@@ -65,7 +65,7 @@ describe('click top bar as student', () => {
 
     cy.get('a.flex').eq(8).click()
     cy.get('input').eq(0).type('AA')
-    cy.get('span').eq(14).click().wait(1000)
+    cy.get('span').eq(14).click()
     cy.get('button').eq(3).click()
 
 

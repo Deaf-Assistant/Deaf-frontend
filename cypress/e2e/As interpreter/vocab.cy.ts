@@ -6,7 +6,7 @@ describe('click top bar as student', () => {
     // we include it in our beforeEach function so that it runs before each test
 
     cy.visit('http://localhost:3000/login')
-    cy.get('input.w-full').eq(0).type('gust2@gmail.com{enter}')
+    cy.get('input.w-full').eq(0).type('gust5@gmail.com{enter}')
     cy.get('input.w-full').eq(1).type('123456{enter}')
 
 

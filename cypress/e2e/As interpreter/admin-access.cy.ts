@@ -10,14 +10,14 @@ describe('click top bar as student', () => {
     // Since we want to visit the same URL at the start of all our tests,
     // we include it in our beforeEach function so that it runs before each test http://localhost:3000/vocabulary
     cy.visit('http://localhost:3000/login')
-    cy.get('input.w-full').eq(0).type('gust2@gmail.com{enter}')
+    cy.get('input.w-full').eq(0).type('gust5@gmail.com{enter}')
     cy.get('input.w-full').eq(1).type('123456{enter}')
 
   })
 
   it('add vocab)', () => {
     // cy.get('div.mb-8 form').click().type('test{enter}')
-    cy.get('a.flex').eq(15).click()
+    cy.get('a.flex').eq(12).click()
 
     cy.get('select').eq(0).select('apple - apple')
     cy.get('select').eq(1).select('apple')
@@ -41,7 +41,9 @@ describe('click top bar as student', () => {
 
     cy.get('a.flex').eq(9).click()
     cy.get('input').eq(0).type('apple')
-    cy.get('span').eq(12).click()
+    cy.get('button.flex').eq(3).click()
+    cy.get('button.font-bold').eq(2).click()
+
     cy.on('window:confirm', () => true)
     cy.wait(3000)
     //cy.get('button').eq(3).click()
@@ -49,7 +51,7 @@ describe('click top bar as student', () => {
 
   it('add course)', () => {
     // cy.get('div.mb-8 form').click().type('test{enter}')
-    cy.get('a.flex').eq(16).click()
+    cy.get('a.flex').eq(13).click()
     cy.get('input').eq(0).type('AA')
     cy.get('input').eq(1).type('AA')
     cy.get('select').eq(0).select('เฉพาะผู้ดูแล (admin เท่านั้น)')
@@ -65,7 +67,7 @@ describe('click top bar as student', () => {
 
     cy.get('a.flex').eq(8).click()
     cy.get('input').eq(0).type('AA')
-    cy.get('span').eq(14).click().wait(1000)
+    cy.get('span').eq(14).click()
     cy.get('button').eq(3).click()
 
 
