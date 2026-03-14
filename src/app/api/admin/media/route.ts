@@ -32,8 +32,17 @@ export async function GET(req: NextRequest) {
         ]);
 
         // 2. Get public URL base
-        const imageBase = supabaseAdmin.storage.from("images").getPublicUrl("").data.publicUrl.replace(/\/$/, "");
-        const videoBase = supabaseAdmin.storage.from("videos").getPublicUrl("").data.publicUrl.replace(/\/$/, "");
+        
+        const internalUrl = process.env.SUPABASE_URL_INTERNAL || "http://supabase-kong:8000";
+        const publicUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "http://10.10.184.128:8000";
+
+        const imageBase = supabaseAdmin.storage.from("images").getPublicUrl("").data.publicUrl
+            .replace(/\/$/, "")
+            .replace(internalUrl, publicUrl); 
+
+        const videoBase = supabaseAdmin.storage.from("videos").getPublicUrl("").data.publicUrl
+            .replace(/\/$/, "")
+            .replace(internalUrl, publicUrl); 
 
         // 3. Fetch all vocabulary media URLs from DB
         const { data: vocabs } = await supabaseAdmin

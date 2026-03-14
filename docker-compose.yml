@@ -26,8 +26,8 @@ services:
       - CMU_ENTRAID_GET_TOKEN_URL
       - CMU_ENTRAID_GET_BASIC_INFO
       - SCOPE
-      - CMU_ENTRAID_REDIRECT_URL=http://localhost:3000/cmuEntraIDCallback
-    
+      - CMU_ENTRAID_REDIRECT_URL
+
 
     networks:
       - supabase_default
