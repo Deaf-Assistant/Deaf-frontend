@@ -144,7 +144,7 @@ try{
         <img src="/icon.png" className="w-8 h-8" />
       </div>
             <div className="hidden sm:block">
-              <h1 className="text-2xl font-bold text-purple-700">DDCMU</h1>
+              <h1 className="text-2xl font-bold text-purple-700">DSSSign</h1>
               <p className="text-sm text-purple-600">ผู้ช่วยการเรียนรู้ 📚</p>
             </div>
           </Link>
