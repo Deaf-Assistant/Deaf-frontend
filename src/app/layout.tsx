@@ -6,7 +6,7 @@ import AuthSync from '@/components/AuthSync';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Deaf Assistant - ระบบช่วยสนับสนุนการเรียนรู้',
+  title: 'DSSSign - ระบบช่วยสนับสนุนการเรียนรู้',
   description: 'ระบบช่วยสนับสนุนการเรียนการสอนสำหรับนักศึกษาผู้บกพร่องทางการได้ยิน',
 };
 

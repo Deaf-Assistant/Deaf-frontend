@@ -135,7 +135,7 @@ export default function LandingPage() {
 
               {/* Headline */}
               <h1 className="hero-title text-3xl md:text-4xl lg:text-5xl font-black tracking-tight mb-6 leading-[1.08] whitespace-nowrap">
-                <span className="text-white">DDCMU ผู้ช่วยการเรียนรู้</span>
+                <span className="text-white">DSSSign ผู้ช่วยการเรียนรู้</span>
                 <span className="hero-emoji inline-block ml-3">🌟</span>
               </h1>
 
