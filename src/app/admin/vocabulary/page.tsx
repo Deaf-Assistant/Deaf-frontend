@@ -9,6 +9,7 @@ import Loading from "@/components/ui/Loading";
 import { vocabularyApi, coursesApi, chaptersApi } from "@/lib/api";
 import { createClient } from "@/lib/supabase";
 import { logAction } from "@/lib/audit-client";
+import { toast } from "react-toastify";
 
 const supabase = createClient();
 
@@ -182,7 +183,7 @@ export default function AdminVocabularyPage() {
       setVocabularies((prev) => prev.filter((v) => !selectedIds.includes(v.id)));
       setSelectedIds([]);
       router.refresh();
-      alert("ลบข้อมูลและไฟล์สื่อสำเร็จเรียบร้อยแล้ว");
+      toast.success("ลบข้อมูลและไฟล์สื่อสำเร็จเรียบร้อยแล้ว");
     } catch (error: any) {
       console.error(error);
       alert("เกิดข้อผิดพลาดในการลบ: " + error.message);

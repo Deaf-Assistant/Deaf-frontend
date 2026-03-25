@@ -9,6 +9,7 @@ import { reportsApi, vocabularyApi, coursesApi, chaptersApi } from "@/lib/api";
 import { PROBLEM_TYPES, ROUTES } from "@/lib/constants";
 import { auth } from "@/lib/auth";
 import Link from "next/dist/client/link";
+import { toast } from "react-toastify";
 
 function ReportContent() {
   const router = useRouter();
@@ -154,7 +155,7 @@ function ReportContent() {
         reported_by: user?.id || null,
       });
 
-      alert("ส่งรายงานสำเร็จ!");
+      toast.success("ส่งรายงานสำเร็จ!");
       router.push(ROUTES.VOCABULARY);
     } catch (error: any) {
       console.error("Report Error Details:", JSON.stringify(error, null, 2));

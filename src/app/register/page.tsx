@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase';
 import { ROUTES } from '@/lib/constants';
+import { toast } from 'react-toastify';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -92,12 +93,12 @@ export default function RegisterPage() {
 
       if (signInError) {
         // Account created but auto-login failed — send to login page
-        alert('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
+        toast.success('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
         router.push(ROUTES.LOGIN);
         return;
       }
 
-      alert('ลงทะเบียนสำเร็จ!');
+      toast.success('ลงทะเบียนสำเร็จ!');
       router.push(ROUTES.COURSES);
       router.refresh();
 

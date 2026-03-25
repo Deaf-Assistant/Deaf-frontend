@@ -8,6 +8,7 @@ import VocabularyForm from "@/components/features/VocabularyForm";
 import { vocabularyApi } from "@/lib/api";
 import { labelTagsApi } from "@/lib/label_api";
 import { logAction } from "@/lib/audit-client";
+import { toast } from "react-toastify";
 
 export default function EditVocabularyPage() {
   const { id } = useParams();
@@ -81,7 +82,7 @@ export default function EditVocabularyPage() {
         }
       }
 
-      alert("แก้ไขข้อมูลสำเร็จ");
+      toast.success("แก้ไขข้อมูลสำเร็จ");
       router.push("/admin/vocabulary");
       router.refresh();
 
