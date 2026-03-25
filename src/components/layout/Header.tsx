@@ -34,9 +34,9 @@ export default function Header() {
     return pathname === path || pathname.startsWith(path + '/');
   };
 
-const loadUser = async () => {
+  const loadUser = async () => {
     try {
-   
+
       const localUser = auth.getUser();
       if (localUser) {
         setUser(localUser);
@@ -45,20 +45,20 @@ const loadUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
 
         const fullUser = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: profile?.name || session.user.user_metadata?.name || 'User',
-            role: profile?.role || session.user.user_metadata?.role || 'STUDENT',
-            ...profile
+          id: session.user.id,
+          email: session.user.email || '',
+          name: profile?.name || session.user.user_metadata?.name || 'User',
+          role: profile?.role || session.user.user_metadata?.role || 'STUDENT',
+          ...profile
         };
 
-    
+
         auth.setToken(session.access_token);
         // @ts-ignore
         auth.setUser(fullUser);
@@ -111,15 +111,15 @@ const loadUser = async () => {
 
 
   const handleLogout = async () => {
-try{
-    const currentUser = auth.getUser();
-    const cmuLogoutUrl = process.env.NEXT_PUBLIC_CMU_ENTRAID_LOGOUT_URL;
-    const isCmuAccount = currentUser?.email?.endsWith('@cmu.ac.th');
+    try {
+      const currentUser = auth.getUser();
+      const cmuLogoutUrl = process.env.NEXT_PUBLIC_CMU_ENTRAID_LOGOUT_URL;
+      const isCmuAccount = currentUser?.email?.endsWith('@cmu.ac.th');
 
-    await supabase.auth.signOut();
-    auth.logout();
-  
-    if (cmuLogoutUrl && isCmuAccount) {
+      await supabase.auth.signOut();
+      auth.logout();
+
+      if (cmuLogoutUrl && isCmuAccount) {
         window.location.href = cmuLogoutUrl;
       } else {
         window.location.href = ROUTES.LOGIN;
@@ -140,9 +140,9 @@ try{
             href={ROUTES.HOME}
             className="flex items-center space-x-3 shrink-0"
           >
-      <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-        <img src="/icon.png" className="w-8 h-8" />
-      </div>
+            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+              <img src="/icon.png" className="w-8 h-8" />
+            </div>
             <div className="hidden sm:block">
               <h1 className="text-2xl font-bold text-purple-700">DSSSIGN</h1>
               <p className="text-sm text-purple-600">ผู้ช่วยการเรียนรู้ 📚</p>
@@ -251,13 +251,23 @@ try{
             )}
 
             {currentUser ? (
-              <button
-                onClick={handleLogout}
-                className="mt-3 flex items-center justify-center gap-2 px-4 py-3 bg-rose-300 text-rose-800 rounded-xl font-bold"
-              >
-                <LogOut className="w-5 h-5" />
-                ออก
-              </button>
+              <>
+                <div className="mt-2 text-center bg-white/50 py-3 rounded-xl border border-purple-100 pb-2">
+                  <p className="font-bold text-purple-700 truncate px-4">
+                    {currentUser.name}
+                  </p>
+                  <p className="text-xs font-semibold text-purple-600 uppercase truncate px-4">
+                    {currentUser.role}
+                  </p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="mt-1 flex items-center justify-center gap-2 px-4 py-3 bg-rose-300 text-rose-800 rounded-xl font-bold"
+                >
+                  <LogOut className="w-5 h-5" />
+                  ออก
+                </button>
+              </>
             ) : (
               <>
                 <Link href={ROUTES.LOGIN} className="btn-white">
@@ -291,12 +301,11 @@ function NavItem({
     <Link
       href={href}
       className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold whitespace-nowrap transition
-        ${
-          active
-            ? admin
-              ? "bg-amber-200 text-amber-800"
-              : "bg-white text-purple-600"
-            : "text-purple-700 hover:bg-white/40"
+        ${active
+          ? admin
+            ? "bg-amber-200 text-amber-800"
+            : "bg-white text-purple-600"
+          : "text-purple-700 hover:bg-white/40"
         }`}
     >
       {children}

@@ -39,7 +39,7 @@ export default function Footer() {
         {/* Social */}
         <div className="flex space-x-6 mb-8">
           <a
-            href="https://www.facebook.com/deafassistant"
+            href="https://www.facebook.com/DSSCMU/"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-blue-500 transition"
@@ -50,13 +50,13 @@ export default function Footer() {
           </a>
 
           <a
-            href="https://www.instagram.com/deafassistant"
+            href="https://www.tiktok.com/@dsscmu"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-pink-500 transition"
           >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M7.75 2h8.5C19.55 2 22 4.45 22 7.75v8.5C22 19.55 19.55 22 16.25 22h-8.5C4.45 22 2 19.55 2 16.25v-8.5C2 4.45 4.45 2 7.75 2zm0 1.5C5.27 3.5 3.5 5.27 3.5 7.75v8.5c0 2.48 1.77 4.25 4.25 4.25h8.5c2.48 0 4.25-1.77 4.25-4.25v-8.5c0-2.48-1.77-4.25-4.25-4.25h-8.5zM12 7a5 5 0 110 10 5 5 0 010-10zm0 1.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zm5.25-.75a1 1 0 110 2 1 1 0 010-2z" />
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 448 512">
+              <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z" />
             </svg>
           </a>
         </div>

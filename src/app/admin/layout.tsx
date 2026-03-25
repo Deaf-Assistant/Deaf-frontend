@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import AdminLayout from "@/components/layout/AdminLayout";
 
 export const metadata = {
-  title: "Admin | Deaf Assistant",
-  description: "Admin dashboard and management pages for Deaf Assistant",
+  title: "Admin | DSSSign",
+  description: "Admin dashboard and management pages for DSSSign",
 };
 
 export default function AdminRootLayout({ children }: { children: ReactNode }) {

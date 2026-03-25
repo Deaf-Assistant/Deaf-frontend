@@ -66,9 +66,13 @@ const menuItems = [
   },
 ];
 
+import { useState } from "react";
+import { ChevronLeft, Menu } from "lucide-react";
+
 export default function Sidebar() {
   const pathname = usePathname();
   const user = auth.getUser();
+  const [isOpen, setIsOpen] = useState(true);
 
   const isActive = (href: string) => {
     if (href === ROUTES.ADMIN_DASHBOARD) {
@@ -78,41 +82,54 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white shadow-lg min-h-screen sticky top-20">
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">เมนูจัดการ</h2>
+    <aside
+      className={`bg-white shadow-lg min-h-screen sticky top-20 transition-all duration-300 z-30 ${isOpen ? "w-64" : "w-20"
+        }`}
+    >
+      <div className={`py-6 flex flex-col h-full ${isOpen ? "px-6" : "px-3"}`}>
+        <div className={`flex items-center mb-6 ${isOpen ? "justify-between" : "justify-center"}`}>
+          {isOpen && <h2 className="text-xl font-bold text-gray-900 whitespace-nowrap">เมนูจัดการ</h2>}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"
+          >
+            {isOpen ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-2 flex-1">
           {menuItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              title={!isOpen ? item.title : undefined}
               className={`
-                flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                ${
-                  isActive(item.href)
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "text-gray-700 hover:bg-gray-100"
+                flex items-center py-3 rounded-lg text-base font-medium transition-all
+                ${isOpen ? "px-4" : "justify-center"}
+                ${isActive(item.href)
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
                 }
               `}
             >
-              <span className="mr-3">{item.icon}</span>
-              {item.title}
+              <span className={isOpen ? "mr-3" : ""}>{item.icon}</span>
+              {isOpen && <span className="whitespace-nowrap">{item.title}</span>}
             </Link>
           ))}
           {user?.role === "ADMIN" && (
             <Link
               href="/admin/users"
+              title={!isOpen ? "จัดการผู้ใช้" : undefined}
               className={`
-                  flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                  ${
-                    pathname.startsWith("/admin/users")
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }
+                  flex items-center py-3 rounded-lg text-base font-medium transition-all
+                  ${isOpen ? "px-4" : "justify-center"}
+                  ${pathname.startsWith("/admin/users")
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                }
                 `}
             >
-              <span className="mr-3">
+              <span className={isOpen ? "mr-3" : ""}>
                 <svg
                   className="w-6 h-6"
                   fill="currentColor"
@@ -121,22 +138,23 @@ export default function Sidebar() {
                   <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0zM4 14a4 4 0 018 0v1H4v-1zM14 14a4 4 0 014 0v1h-4v-1z" />
                 </svg>
               </span>
-              จัดการผู้ใช้
+              {isOpen && <span className="whitespace-nowrap">จัดการผู้ใช้</span>}
             </Link>
           )}
           {user?.role === "ADMIN" && (
             <Link
               href="/admin/media"
+              title={!isOpen ? "จัดการสื่อ" : undefined}
               className={`
-                  flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                  ${
-                    pathname.startsWith("/admin/media")
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }
+                  flex items-center py-3 rounded-lg text-base font-medium transition-all
+                  ${isOpen ? "px-4" : "justify-center"}
+                  ${pathname.startsWith("/admin/media")
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                }
                 `}
             >
-              <span className="mr-3">
+              <span className={isOpen ? "mr-3" : ""}>
                 <svg
                   className="w-6 h-6"
                   fill="currentColor"
@@ -149,22 +167,23 @@ export default function Sidebar() {
                   />
                 </svg>
               </span>
-              จัดการสื่อ
+              {isOpen && <span className="whitespace-nowrap">จัดการสื่อ</span>}
             </Link>
           )}
           {["ADMIN", "INTERPRETER", "LECTURER"].includes(user?.role ?? "") && (
             <Link
               href="/admin/stats"
+              title={!isOpen ? "สถิติรายวิชา" : undefined}
               className={`
-                  flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                  ${
-                    pathname.startsWith("/admin/stats")
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }
+                  flex items-center py-3 rounded-lg text-base font-medium transition-all
+                  ${isOpen ? "px-4" : "justify-center"}
+                  ${pathname.startsWith("/admin/stats")
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                }
                 `}
             >
-              <span className="mr-3">
+              <span className={isOpen ? "mr-3" : ""}>
                 <svg
                   className="w-6 h-6"
                   fill="currentColor"
@@ -173,22 +192,23 @@ export default function Sidebar() {
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
               </span>
-              สถิติรายวิชา
+              {isOpen && <span className="whitespace-nowrap">สถิติรายวิชา</span>}
             </Link>
           )}
           {user?.role === "ADMIN" && (
             <Link
               href="/admin/audit-log"
+              title={!isOpen ? "Audit Log" : undefined}
               className={`
-                  flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all
-                  ${
-                    pathname.startsWith("/admin/audit-log")
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }
+                  flex items-center py-3 rounded-lg text-base font-medium transition-all
+                  ${isOpen ? "px-4" : "justify-center"}
+                  ${pathname.startsWith("/admin/audit-log")
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                }
                 `}
             >
-              <span className="mr-3">
+              <span className={isOpen ? "mr-3" : ""}>
                 <svg
                   className="w-6 h-6"
                   fill="none"
@@ -203,63 +223,87 @@ export default function Sidebar() {
                   />
                 </svg>
               </span>
-              Audit Log
+              {isOpen && <span className="whitespace-nowrap">Audit Log</span>}
             </Link>
           )}
         </nav>
 
         {/* Quick Actions */}
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
-            การดำเนินการด่วน
-          </h3>
-          <div className="space-y-2">
+        {isOpen ? (
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+              การดำเนินการด่วน
+            </h3>
+            <div className="space-y-2">
+              <Link
+                href="/admin/vocabulary/add"
+                className="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                เพิ่มคำศัพท์
+              </Link>
+
+              <Link
+                href="/admin/courses/add"
+                className="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                เพิ่มรายวิชา
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-8 pt-6 border-t border-gray-200 flex flex-col items-center space-y-4">
             <Link
               href="/admin/vocabulary/add"
-              className="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition"
+              title="เพิ่มคำศัพท์"
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition flex justify-center"
             >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
-              เพิ่มคำศัพท์
             </Link>
-
             <Link
               href="/admin/courses/add"
-              className="flex items-center px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition"
+              title="เพิ่มรายวิชา"
+              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition flex justify-center"
             >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
-              เพิ่มรายวิชา
             </Link>
           </div>
-        </div>
+        )}
 
         {/* Back to site */}
-        <div className="mt-8 pt-8 border-t border-gray-200">
+        <div className="mt-8 pt-6 pb-6 border-t border-gray-200">
           <Link
             href={ROUTES.HOME}
-            className="flex items-center px-4 py-3 text-base text-gray-700 hover:bg-gray-100 rounded-lg transition"
+            title={!isOpen ? "กลับสู่หน้าหลัก" : undefined}
+            className={`flex items-center py-3 text-base text-gray-700 hover:bg-gray-100 rounded-lg transition ${isOpen ? "px-4" : "justify-center"}`}
           >
             <svg
-              className="w-5 h-5 mr-3"
+              className={`w-5 h-5 ${isOpen ? "mr-3" : ""}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -271,7 +315,7 @@ export default function Sidebar() {
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            กลับสู่หน้าหลัก
+            {isOpen && <span className="whitespace-nowrap">กลับสู่หน้าหลัก</span>}
           </Link>
         </div>
       </div>

@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
         {/* Header */}
         <div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">แดชบอร์ด</h1>
-          <p className="text-lg text-gray-600">ภาพรวมของระบบ Deaf Assistant</p>
+          <p className="text-lg text-gray-600">ภาพรวมของระบบ DSSSign</p>
         </div>
 
         {/* Stats Cards */}
